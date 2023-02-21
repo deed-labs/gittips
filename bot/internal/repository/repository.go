@@ -12,6 +12,8 @@ type Repository interface {
 }
 
 type OwnersRepository interface {
+	Get(ctx context.Context, ownerID int64) (*entity.Owner, error)
+	Create(ctx context.Context, owner *entity.Owner) error
 }
 
 type BountiesRepository interface {

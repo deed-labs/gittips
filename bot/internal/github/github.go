@@ -50,6 +50,7 @@ func (gh *GitHub) processInstallation(ctx context.Context, payload ghHooks.Insta
 			payload.Installation.Account.ID,
 			payload.Installation.Account.Login,
 			payload.Installation.Account.URL,
+			payload.Installation.Account.AvatarURL,
 		)
 		if err != nil {
 			return fmt.Errorf("create owner: %w", err)
