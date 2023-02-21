@@ -3,6 +3,7 @@ module github.com/deed-labs/openroll/bot
 go 1.19
 
 require (
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-playground/webhooks/v6 v6.0.1
 	github.com/google/go-github/v50 v50.0.0
 	go.uber.org/zap v1.24.0

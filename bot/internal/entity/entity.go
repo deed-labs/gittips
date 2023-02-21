@@ -14,4 +14,6 @@ type Bounty struct {
 	URL           string
 	WalletAddress string
 	Reward        uint64
+
+	Owner Owner
 }

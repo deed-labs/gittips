@@ -20,6 +20,10 @@ func NewBountiesService(owners Owners, repository repository.Repository) *Bounti
 	}
 }
 
+func (s *BountiesService) GetAll(ctx context.Context) ([]*entity.Bounty, error) {
+	return s.repository.Bounties().GetAll(ctx)
+}
+
 func (s *BountiesService) Create(ctx context.Context, ownerID int64, title string, url string, body string) error {
 	parsedBody := parser.ParseBody(body)
 

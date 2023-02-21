@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/deed-labs/openroll/bot/internal/entity"
 	"github.com/deed-labs/openroll/bot/internal/repository"
 )
 
@@ -11,6 +12,7 @@ type Owners interface {
 }
 
 type Bounties interface {
+	GetAll(ctx context.Context) ([]*entity.Bounty, error)
 	Create(ctx context.Context, ownerID int64, title string, url string, body string) error
 }
 
