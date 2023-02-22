@@ -13,16 +13,21 @@ type Handlers struct {
 	http     *chi.Mux
 }
 
-func New(services *service.Services) *Handlers {
+func New(ghHandler http.HandlerFunc, services *service.Services) *Handlers {
 	r := chi.NewRouter()
 
 	h := new(Handlers)
 	h.services = services
 
 	r.Use(middleware.DefaultLogger)
+	r.Post("/github", ghHandler)
 	r.Get("/api/bounties", h.handleGetBounties)
 
 	return h
+}
+
+func (h *Handlers) HTTP() http.Handler {
+	return h.http
 }
 
 func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +43,7 @@ func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
 		bountiesList = append(bountiesList, Bounty{
 			OwnerID:        v.OwnerID,
 			Owner:          v.Owner.Login,
+			OwnerURL:       v.Owner.URL,
 			OwnerAvatarURL: v.Owner.AvatarURL,
 			Title:          v.Title,
 			URL:            v.URL,

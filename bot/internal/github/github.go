@@ -6,6 +6,7 @@ import (
 	"github.com/deed-labs/openroll/bot/internal/parser"
 	"github.com/deed-labs/openroll/bot/internal/service"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
+	"net/http"
 
 	"github.com/google/go-github/v50/github"
 )
@@ -16,7 +17,9 @@ type GitHub struct {
 	services *service.Services
 }
 
-func New(secret string, client *github.Client, services *service.Services) *GitHub {
+func New(secret string, httpClient *http.Client, services *service.Services) *GitHub {
+	client := github.NewClient(httpClient)
+
 	return &GitHub{
 		secret:   secret,
 		client:   client,
@@ -70,7 +73,6 @@ func (gh *GitHub) processNewIssue(ctx context.Context, payload ghHooks.IssuesPay
 
 	switch {
 	case parser.SearchLabel(parser.CreateBountyLabel, labelNames):
-		// TODO: parse issue body for reward
 		err := gh.services.Bounties.Create(ctx, payload.Repository.Owner.ID, payload.Issue.Title,
 			payload.Issue.URL, payload.Issue.Body)
 		if err != nil {
