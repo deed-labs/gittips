@@ -5,15 +5,15 @@ type Owner struct {
 	Login           string
 	URL             string
 	AvatarURL       string
+	Type            string
 	TwitterUsername string
 }
 
 type Bounty struct {
-	OwnerID       int64
-	Title         string
-	URL           string
-	WalletAddress string
-	Reward        uint64
+	OwnerID int64
+	Title   string
+	URL     string
+	Reward  uint64
 
 	Owner Owner
 }

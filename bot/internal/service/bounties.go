@@ -28,12 +28,11 @@ func (s *BountiesService) Create(ctx context.Context, ownerID int64, title strin
 	parsedBody := parser.ParseBody(body)
 
 	bounty := &entity.Bounty{
-		OwnerID:       ownerID,
-		Title:         title,
-		URL:           url,
-		WalletAddress: parsedBody.WalletAddress,
-		Reward:        parsedBody.Reward,
+		OwnerID: ownerID,
+		Title:   title,
+		URL:     url,
+		Reward:  parsedBody.Reward,
 	}
 
-	return s.repository.Bounties().Create(ctx, bounty)
+	return s.repository.Bounties().Save(ctx, bounty)
 }

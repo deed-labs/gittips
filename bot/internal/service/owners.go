@@ -38,5 +38,5 @@ func (s *OwnersService) Create(ctx context.Context, ID int64, login string, url 
 		TwitterUsername: "",
 	}
 
-	return s.repository.Owners().Create(ctx, owner)
+	return s.repository.Owners().Save(ctx, owner)
 }

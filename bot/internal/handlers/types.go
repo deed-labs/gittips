@@ -7,6 +7,7 @@ type BountyResponse struct {
 type Bounty struct {
 	OwnerID        int64  `json:"owner_id"`
 	Owner          string `json:"owner"`
+	OwnerURL       string `json:"owner_url"`
 	OwnerAvatarURL string `json:"owner_avatar_url"`
 	Title          string `json:"title"`
 	URL            string `json:"url"`
