@@ -49,7 +49,7 @@
 <div class={'navbar bg-base-100 ' + classProps}>
 	<div class="flex-1">
 		<a class="btn btn-ghost normal-case text-xl" href="/"
-			><img src={GittipsLogo} width={35} class="mr-3" alt="logo" />Gittips</a
+			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
 		>
 		<div class="text-sm breadcrumbs text-info mx-4">
 			<ul>
