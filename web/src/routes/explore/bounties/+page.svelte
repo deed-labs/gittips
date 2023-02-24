@@ -10,7 +10,7 @@
 			owner: 'deed-labs',
 			ownerType: 'organization',
 			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/openroll/issues',
+			link: 'https://github.com/deed-labs/gittips/issues',
 			reward: '10.0',
 			rewardUSD: '23.4'
 		},
@@ -20,7 +20,7 @@
 			owner: 'deed-labs',
 			ownerType: 'organization',
 			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/openroll/issues',
+			link: 'https://github.com/deed-labs/gittips/issues',
 			reward: '50.0',
 			rewardUSD: '23.4'
 		},
@@ -30,7 +30,7 @@
 			owner: 'deed-labs',
 			ownerType: 'organization',
 			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/openroll/issues',
+			link: 'https://github.com/deed-labs/gittips/issues',
 			reward: '5.0',
 			rewardUSD: '23.4'
 		},
@@ -40,7 +40,7 @@
 			owner: 'deed-labs',
 			ownerType: 'organization',
 			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/openroll/issues',
+			link: 'https://github.com/deed-labs/gittips/issues',
 			reward: '250.0',
 			rewardUSD: '23.4'
 		}

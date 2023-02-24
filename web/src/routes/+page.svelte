@@ -12,7 +12,7 @@
 	<div class="hero-content text-center">
 		{#if ready}
 			<div class="max-w-xl" in:fly={{ y: 200, duration: 1500 }}>
-				<h1 class="text-5xl font-bold">Welcome to OpenRoll 👋</h1>
+				<h1 class="text-5xl font-bold">Welcome to Gittips 👋</h1>
 				<p class="py-8">
 					Encourage developers to contribute to your projects by giving a crypto reward for each
 					completed task and opened issue.

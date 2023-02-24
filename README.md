@@ -1,2 +1,3 @@
-# openroll-monorepo
-Monorepo for all OpenRoll components.
+# Gittips
+
+Monorepo for all Gittips components.
