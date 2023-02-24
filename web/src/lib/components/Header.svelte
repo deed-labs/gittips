@@ -1,6 +1,6 @@
 <script lang="ts">
-	import TONLogo from '$lib/images/ton_logo.png';
-	import TONConnectLogo from '$lib/images/ton_connect_logo.png';
+	import GittipsLogo from '$lib/images/gittips_logo.png';
+	import TONDiamondWhiteLogo from '$lib/images/ton_diamond_white.png';
 	import * as QROptions from './qr.json';
 
 	import QRCodeStyling from 'qr-code-styling';
@@ -49,7 +49,7 @@
 <div class={'navbar bg-base-100 ' + classProps}>
 	<div class="flex-1">
 		<a class="btn btn-ghost normal-case text-xl" href="/"
-			><img src={TONLogo} width={35} class="mr-3" alt="logo" />Gittips</a
+			><img src={GittipsLogo} width={35} class="mr-3" alt="logo" />Gittips</a
 		>
 		<div class="text-sm breadcrumbs text-info mx-4">
 			<ul>
@@ -78,7 +78,7 @@
 		<div>
 			{#if !$connected}
 				<button class="btn btn-primary mr-4 text-white rounded-full capitalize"
-					><img src={TONConnectLogo} alt="ton logo" width={40} on:click={connect} /> Connect TON</button
+					><img class="mr-2" src={TONDiamondWhiteLogo} alt="ton logo" width={18} on:click={connect} />Connect TON</button
 				>
 			{:else}
 				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4"
