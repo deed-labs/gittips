@@ -40,12 +40,16 @@
 		TON.disconnect();
 		isDisconnectingModalOpen = false;
 	};
+
+	let classProps = '';
+
+	export { classProps as class };
 </script>
 
-<div class="navbar bg-base-100">
+<div class={'navbar bg-base-100 ' + classProps}>
 	<div class="flex-1">
 		<a class="btn btn-ghost normal-case text-xl" href="/"
-			><img src={TONLogo} width={35} class="mr-3" alt="logo" />OpenRoll</a
+			><img src={TONLogo} width={35} class="mr-3" alt="logo" />Gittips</a
 		>
 		<div class="text-sm breadcrumbs text-info mx-4">
 			<ul>
@@ -64,16 +68,16 @@
 	<div class="flex-none">
 		<div>
 			<a
-				href="https://github.com/apps/openroll-test"
+				href="https://github.com/apps/gittips-test"
 				target="_blank"
 				rel="noreferrer"
-				class="btn btn-github mr-4 text-white"
-				><img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Install to GitHub</a
+				class="btn btn-github mr-4 text-white rounded-full capitalize"
+				><img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub</a
 			>
 		</div>
 		<div>
 			{#if !$connected}
-				<button class="btn btn-primary mr-4 text-white"
+				<button class="btn btn-primary mr-4 text-white rounded-full capitalize"
 					><img src={TONConnectLogo} alt="ton logo" width={40} on:click={connect} /> Connect TON</button
 				>
 			{:else}
