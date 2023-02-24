@@ -1,6 +1,6 @@
 <script>
 	import Header from '$lib/components/Header.svelte';
-	import TONLogo from '$lib/images/ton_logo.png';
+	import TONDiamondBlueLogo from '$lib/images/ton_diamond_blue.png';
 
 	// TODO: replace with real data
 	let data = [
@@ -91,7 +91,7 @@
 					</td>
 					<td>
 						<div class="flex flex-row items-center gap-1">
-							<img src={TONLogo} alt="ethereum logo" width={25} />
+							<img src={TONDiamondBlueLogo} alt="ethereum logo" width={17} />
 							<p class="text-lg">{bounty.reward}</p>
 						</div>
 						<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
