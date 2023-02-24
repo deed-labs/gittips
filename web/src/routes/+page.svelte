@@ -15,7 +15,7 @@
 				<h1 class="text-5xl font-bold">Welcome to Gittips 👋</h1>
 				<p class="py-8">
 					Encourage developers to contribute to your projects by giving a crypto reward for each
-					completed task and opened issue.
+					completed task and valuable issue.
 				</p>
 				<div class="flex justify-center gap-4">
 					<a
