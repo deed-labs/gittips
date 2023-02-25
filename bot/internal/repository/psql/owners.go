@@ -16,7 +16,7 @@ type ownersStorage struct {
 func (s *ownersStorage) Get(ctx context.Context, ownerID int64) (*entity.Owner, error) {
 	query := `SELECT gh_id, login, url, avatar_url, type, twitter_username FROM owners WHERE gh_id=$1`
 
-	rows, err := s.db.QueryContext(ctx, query)
+	rows, err := s.db.QueryContext(ctx, query, ownerID)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, repository.ErrNotFound
 	} else if err != nil {

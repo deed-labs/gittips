@@ -23,6 +23,8 @@ func New(ghHandler http.HandlerFunc, services *service.Services) *Handlers {
 	r.Post("/github", ghHandler)
 	r.Get("/api/bounties", h.handleGetBounties)
 
+	h.http = r
+
 	return h
 }
 

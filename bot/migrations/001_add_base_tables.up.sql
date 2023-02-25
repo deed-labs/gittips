@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS owners (
-    id serial primary key,
-    gh_id integer,
+    gh_id integer primary key,
     login varchar(128),
     url varchar(160),
     avatar_url varchar(160),

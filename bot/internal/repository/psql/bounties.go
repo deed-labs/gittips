@@ -43,9 +43,9 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 
 func (s *bountiesStorage) Save(ctx context.Context, bounty *entity.Bounty) error {
 	query := `INSERT INTO bounties (
-                      owner_id, title, url, reward
+                    owner_id, title, url, reward
                 ) VALUES (
-                          $1, $2, $3, $4
+                    $1, $2, $3, $4
                 )
 	`
 

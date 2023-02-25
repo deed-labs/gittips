@@ -7,8 +7,8 @@ import (
 )
 
 type Owners interface {
-	Exists(ctx context.Context, ID int64) (bool, error)
-	Create(ctx context.Context, ID int64, login string, url string, avatarURL string) error
+	Exists(ctx context.Context, id int64) (bool, error)
+	Create(ctx context.Context, id int64, login string, url string, avatarURL string) error
 }
 
 type Bounties interface {

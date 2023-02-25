@@ -27,34 +27,34 @@ func New(secret string, httpClient *http.Client, services *service.Services) *Gi
 	}
 }
 
-func (gh *GitHub) Handler() (*Handler, error) {
-	hook, err := ghHooks.New(ghHooks.Options.Secret(gh.secret))
-	if err != nil {
-		return nil, fmt.Errorf("create hook: %w", err)
-	}
-
-	h := &Handler{
-		github: gh,
-		hook:   hook,
-	}
-
-	return h, nil
+func (gh *GitHub) processOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error {
+	return gh.processInstallation(
+		ctx,
+		payload.Installation.Account.ID,
+		payload.Installation.Account.Login,
+		payload.Installation.Account.URL,
+		payload.Installation.Account.AvatarURL,
+	)
 }
 
-func (gh *GitHub) processInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error {
-	ownerExists, err := gh.services.Owners.Exists(ctx, payload.Installation.Account.ID)
+func (gh *GitHub) processRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error {
+	return gh.processInstallation(
+		ctx,
+		payload.Installation.Account.ID,
+		payload.Installation.Account.Login,
+		payload.Installation.Account.URL,
+		payload.Installation.Account.AvatarURL,
+	)
+}
+
+func (gh *GitHub) processInstallation(ctx context.Context, id int64, login string, url string, avatarURL string) error {
+	ownerExists, err := gh.services.Owners.Exists(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	if !ownerExists {
-		err := gh.services.Owners.Create(
-			ctx,
-			payload.Installation.Account.ID,
-			payload.Installation.Account.Login,
-			payload.Installation.Account.URL,
-			payload.Installation.Account.AvatarURL,
-		)
+		err := gh.services.Owners.Create(ctx, id, login, url, avatarURL)
 		if err != nil {
 			return fmt.Errorf("create owner: %w", err)
 		}
