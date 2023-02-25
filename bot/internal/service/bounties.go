@@ -24,10 +24,11 @@ func (s *BountiesService) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 	return s.repository.Bounties().GetAll(ctx)
 }
 
-func (s *BountiesService) Create(ctx context.Context, ownerID int64, title string, url string, body string) error {
+func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error {
 	parsedBody := parser.ParseBody(body)
 
 	bounty := &entity.Bounty{
+		ID:      id,
 		OwnerID: ownerID,
 		Title:   title,
 		URL:     url,
@@ -35,4 +36,8 @@ func (s *BountiesService) Create(ctx context.Context, ownerID int64, title strin
 	}
 
 	return s.repository.Bounties().Save(ctx, bounty)
+}
+
+func (s *BountiesService) Delete(ctx context.Context, id int64) error {
+	return s.repository.Bounties().Delete(ctx, id)
 }

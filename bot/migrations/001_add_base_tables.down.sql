@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS owners;
+DROP TABLE IF EXISTS bounties;

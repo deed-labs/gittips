@@ -16,7 +16,7 @@ type ownersStorage struct {
 func (s *ownersStorage) Get(ctx context.Context, ownerID int64) (*entity.Owner, error) {
 	query := `SELECT gh_id, login, url, avatar_url, type, twitter_username FROM owners WHERE gh_id=$1`
 
-	rows, err := s.db.QueryContext(ctx, query)
+	rows, err := s.db.QueryContext(ctx, query, ownerID)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, repository.ErrNotFound
 	} else if err != nil {
@@ -48,6 +48,12 @@ func (s *ownersStorage) Save(ctx context.Context, owner *entity.Owner) error {
                 ) VALUES (
                           $1, $2, $3, $4, $5, $6
                 )
+		ON CONFLICT (gh_id) DO UPDATE 
+		SET login = excluded.login,
+		    url = excluded.url,
+		    avatar_url = excluded.avatar_url,
+		    type = excluded.type,
+		    twitter_username = excluded.twitter_username;
 	`
 
 	_, err := s.db.ExecContext(ctx, query, owner.ID, owner.Login, owner.URL, owner.AvatarURL,

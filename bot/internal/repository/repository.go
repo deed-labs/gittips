@@ -19,6 +19,7 @@ type OwnersRepository interface {
 type BountiesRepository interface {
 	GetAll(ctx context.Context) ([]*entity.Bounty, error)
 	Save(ctx context.Context, bounty *entity.Bounty) error
+	Delete(ctx context.Context, id int64) error
 }
 
 var ErrNotFound = errors.New("not found")

@@ -23,6 +23,8 @@ func New(ghHandler http.HandlerFunc, services *service.Services) *Handlers {
 	r.Post("/github", ghHandler)
 	r.Get("/api/bounties", h.handleGetBounties)
 
+	h.http = r
+
 	return h
 }
 
@@ -42,9 +44,10 @@ func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
 	for _, v := range bounties {
 		bountiesList = append(bountiesList, Bounty{
 			OwnerID:        v.OwnerID,
-			Owner:          v.Owner.Login,
-			OwnerURL:       v.Owner.URL,
-			OwnerAvatarURL: v.Owner.AvatarURL,
+			Owner:          v.OwnerLogin,
+			OwnerURL:       v.OwnerURL,
+			OwnerAvatarURL: v.OwnerAvatarURL,
+			OwnerType:      v.OwnerType,
 			Title:          v.Title,
 			URL:            v.URL,
 			Reward:         v.Reward,

@@ -11,6 +11,7 @@ import (
 	"github.com/deed-labs/openroll/bot/internal/server"
 	"github.com/deed-labs/openroll/bot/internal/service"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"os"
@@ -18,13 +19,17 @@ import (
 )
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+	sugar := logger.Sugar()
+
 	if err := godotenv.Load(); err != nil {
-		log.Println(fmt.Errorf("no .env file found"))
+		sugar.Warn("no .env file found")
 	}
 
 	conf, err := configs.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		sugar.Fatal(err)
 	}
 
 	exit := make(chan os.Signal, 1)
@@ -38,7 +43,7 @@ func main() {
 
 	repo, err := psql.New(conf.PostgresDSN)
 	if err != nil {
-		log.Fatal(err)
+		sugar.Fatal(err)
 	}
 
 	svc := service.New(&service.Deps{
@@ -47,21 +52,21 @@ func main() {
 
 	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, conf.GitHubAppID, conf.GitHubAppPkPath)
 	if err != nil {
-		log.Fatal(err)
+		sugar.Fatal(err)
 	}
 
 	gh := github.New(conf.GitHubWebhookSecret, &http.Client{Transport: itr}, svc)
-	ghHandler, err := gh.Handler()
+	ghHandler, err := github.NewHandler(gh, sugar)
 	if err != nil {
-		log.Fatal(err)
+		sugar.Fatal(err)
 	}
 
-	hndl := handlers.New(ghHandler.Handle, svc)
-	srv := server.New(hndl.HTTP(), conf.ServerPort)
+	handler := handlers.New(ghHandler.Handle, svc)
+	srv := server.New(handler.HTTP(), conf.ServerPort)
 
 	log.Println("Listening...")
 	if err := srv.Run(ctx); err != nil {
-		err = fmt.Errorf("run bridge: %w", err)
-		log.Fatal(err)
+		err = fmt.Errorf("run: %w", err)
+		sugar.Fatal(err)
 	}
 }
