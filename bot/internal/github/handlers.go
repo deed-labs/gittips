@@ -63,7 +63,7 @@ func (h *Handler) Handle(w http.ResponseWriter, r *http.Request) {
 	case ghHooks.InstallationRepositoriesPayload:
 		err = h.github.processRepositoriesInstallation(ctx, p)
 	case ghHooks.IssuesPayload:
-		err = h.github.processNewIssue(ctx, p)
+		err = h.github.processIssueEvent(ctx, p)
 	case ghHooks.IssueCommentPayload:
 		err = h.github.processIssueComment(ctx, p)
 	case ghHooks.PullRequestPayload:

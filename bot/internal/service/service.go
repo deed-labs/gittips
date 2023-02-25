@@ -8,12 +8,13 @@ import (
 
 type Owners interface {
 	Exists(ctx context.Context, id int64) (bool, error)
-	Create(ctx context.Context, id int64, login string, url string, avatarURL string) error
+	Create(ctx context.Context, id int64, login string, url string, avatarURL string, ownerType string) error
 }
 
 type Bounties interface {
 	GetAll(ctx context.Context) ([]*entity.Bounty, error)
-	Create(ctx context.Context, ownerID int64, title string, url string, body string) error
+	Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error
+	Delete(ctx context.Context, id int64) error
 }
 
 type Chain interface {

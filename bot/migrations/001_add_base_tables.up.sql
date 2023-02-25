@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS owners (
 );
 
 CREATE TABLE IF NOT EXISTS bounties (
-    id serial primary key,
-    owner_id integer references owners(gh_id),
+    gh_id integer primary key,
+    owner_gh_id integer references owners(gh_id),
     title text,
     url varchar(160),
     reward bigint

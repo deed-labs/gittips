@@ -13,7 +13,10 @@ type bountiesStorage struct {
 }
 
 func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) {
-	query := `SELECT owner_id, title, url, reward FROM bounties`
+	query := `SELECT 
+    	    	bounties.owner_gh_id, bounties.title, bounties.url, bounties.reward,
+    	    	owners.login, owners.url, owners.avatar_url, owners.type FROM bounties, owners 
+    	WHERE bounties.owner_gh_id = owners.gh_id`
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
@@ -31,6 +34,10 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 			&bounty.Title,
 			&bounty.URL,
 			&bounty.Reward,
+			&bounty.OwnerLogin,
+			&bounty.OwnerURL,
+			&bounty.OwnerAvatarURL,
+			&bounty.OwnerType,
 		); err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
@@ -43,13 +50,24 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 
 func (s *bountiesStorage) Save(ctx context.Context, bounty *entity.Bounty) error {
 	query := `INSERT INTO bounties (
-                    owner_id, title, url, reward
+                    gh_id, owner_gh_id, title, url, reward
                 ) VALUES (
-                    $1, $2, $3, $4
+                    $1, $2, $3, $4, $5
                 )
 	`
 
-	_, err := s.db.ExecContext(ctx, query, bounty.OwnerID, bounty.Title, bounty.URL, bounty.Reward)
+	_, err := s.db.ExecContext(ctx, query, bounty.ID, bounty.OwnerID, bounty.Title, bounty.URL, bounty.Reward)
+	if err != nil {
+		return fmt.Errorf("exec: %w", err)
+	}
+
+	return nil
+}
+
+func (s *bountiesStorage) Delete(ctx context.Context, id int64) error {
+	query := `DELETE FROM bounties WHERE gh_id=$1`
+
+	_, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}

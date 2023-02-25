@@ -29,12 +29,13 @@ func (s *OwnersService) Exists(ctx context.Context, id int64) (bool, error) {
 	return true, nil
 }
 
-func (s *OwnersService) Create(ctx context.Context, id int64, login string, url string, avatarURL string) error {
+func (s *OwnersService) Create(ctx context.Context, id int64, login string, url string, avatarURL string, ownerType string) error {
 	owner := &entity.Owner{
 		ID:              id,
 		Login:           login,
 		URL:             url,
 		AvatarURL:       avatarURL,
+		Type:            ownerType,
 		TwitterUsername: "",
 	}
 

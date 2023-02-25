@@ -10,10 +10,13 @@ type Owner struct {
 }
 
 type Bounty struct {
-	OwnerID int64
-	Title   string
-	URL     string
-	Reward  uint64
-
-	Owner Owner
+	ID             int64
+	OwnerID        int64
+	OwnerLogin     string
+	OwnerURL       string
+	OwnerAvatarURL string
+	OwnerType      string
+	Title          string
+	URL            string
+	Reward         uint64
 }

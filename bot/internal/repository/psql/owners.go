@@ -48,6 +48,12 @@ func (s *ownersStorage) Save(ctx context.Context, owner *entity.Owner) error {
                 ) VALUES (
                           $1, $2, $3, $4, $5, $6
                 )
+		ON CONFLICT (gh_id) DO UPDATE 
+		SET login = excluded.login,
+		    url = excluded.url,
+		    avatar_url = excluded.avatar_url,
+		    type = excluded.type,
+		    twitter_username = excluded.twitter_username;
 	`
 
 	_, err := s.db.ExecContext(ctx, query, owner.ID, owner.Login, owner.URL, owner.AvatarURL,
