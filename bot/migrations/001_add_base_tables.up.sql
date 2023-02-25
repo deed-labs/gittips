@@ -5,7 +5,9 @@ CREATE TABLE IF NOT EXISTS owners (
     url varchar(160),
     avatar_url varchar(160),
     type varchar(20),
-    twitter_username varchar(128)
+    twitter_username varchar(128),
+
+    UNIQUE (gh_id)
 );
 
 CREATE TABLE IF NOT EXISTS bounties (

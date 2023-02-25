@@ -15,11 +15,21 @@ services:
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=portfolio
+      - POSTGRES_DB=bot_data
     volumes:
       - db-data:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ../migrations:/migrations
+    command: [ "-path", "/migrations", "-database",  "postgres://user:password@db:5432/bot_data?sslmode=disable", "up" ]
+    links:
+      - db
+    depends_on:
+      - db
 
 volumes:
   db-data:
