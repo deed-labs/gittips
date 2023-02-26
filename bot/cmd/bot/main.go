@@ -3,19 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/deed-labs/openroll/bot/configs"
-	"github.com/deed-labs/openroll/bot/internal/github"
-	"github.com/deed-labs/openroll/bot/internal/handlers"
-	"github.com/deed-labs/openroll/bot/internal/repository/psql"
-	"github.com/deed-labs/openroll/bot/internal/server"
-	"github.com/deed-labs/openroll/bot/internal/service"
-	"github.com/joho/godotenv"
-	"go.uber.org/zap"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+
+	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/deed-labs/gittips/bot/configs"
+	"github.com/deed-labs/gittips/bot/internal/github"
+	"github.com/deed-labs/gittips/bot/internal/handlers"
+	"github.com/deed-labs/gittips/bot/internal/repository/psql"
+	"github.com/deed-labs/gittips/bot/internal/server"
+	"github.com/deed-labs/gittips/bot/internal/service"
+	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 func main() {

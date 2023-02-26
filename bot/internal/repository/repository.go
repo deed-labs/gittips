@@ -3,7 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/deed-labs/openroll/bot/internal/entity"
+
+	"github.com/deed-labs/gittips/bot/internal/entity"
 )
 
 type Repository interface {

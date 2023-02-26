@@ -5,8 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/deed-labs/openroll/bot/internal/entity"
-	"github.com/deed-labs/openroll/bot/internal/repository"
+
+	"github.com/deed-labs/gittips/bot/internal/entity"
+	"github.com/deed-labs/gittips/bot/internal/repository"
 )
 
 type ownersStorage struct {

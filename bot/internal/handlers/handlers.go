@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/deed-labs/openroll/bot/internal/service"
+	"net/http"
+
+	"github.com/deed-labs/gittips/bot/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net/http"
 )
 
 type Handlers struct {

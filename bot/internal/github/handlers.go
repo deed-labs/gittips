@@ -3,9 +3,10 @@ package github
 import (
 	"errors"
 	"fmt"
+	"net/http"
+
 	ghHooks "github.com/go-playground/webhooks/v6/github"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type Handler struct {

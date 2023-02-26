@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/deed-labs/openroll/bot/internal/entity"
-	"github.com/deed-labs/openroll/bot/internal/repository"
+
+	"github.com/deed-labs/gittips/bot/internal/entity"
+	"github.com/deed-labs/gittips/bot/internal/repository"
 )
 
 type Owners interface {

@@ -3,7 +3,8 @@ package psql
 import (
 	"database/sql"
 	"fmt"
-	"github.com/deed-labs/openroll/bot/internal/repository"
+
+	"github.com/deed-labs/gittips/bot/internal/repository"
 	_ "github.com/lib/pq"
 )
 

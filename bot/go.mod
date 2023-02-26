@@ -1,4 +1,4 @@
-module github.com/deed-labs/openroll/bot
+module github.com/deed-labs/gittips/bot
 
 go 1.19
 
