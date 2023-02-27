@@ -18,9 +18,11 @@ export default class TonKeeper implements IWallet {
 		this.available = true;
 		this.connected = false;
 		this.address = '';
+
+		// TODO: update manifest link when repo is public
 		this.connector = new TonConnect({
 			manifestUrl:
-				'https://raw.githubusercontent.com/deed-labs/gittips/main/web/tonconnect-manifest.json'
+				'https://raw.githubusercontent.com/bifrost-defi/bifrost/main/tonconnect-manifest.json'
 		});
 	}
 
