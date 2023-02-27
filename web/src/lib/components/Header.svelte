@@ -29,7 +29,8 @@
 		let connectionLink = await wallets.TonKeeper.connectExternal(onConnected);
 
 		qrCode.update({
-			data: connectionLink
+			data: connectionLink,
+			image: GittipsLogo
 		});
 		qrCode.append(document.getElementById('qr-code')!);
 
@@ -66,22 +67,22 @@
 		</div>
 	</div>
 	<div class="flex-none">
+		{#if $connected}
 		<div>
-			<a
-				href="https://github.com/apps/gittips-test"
-				target="_blank"
-				rel="noreferrer"
-				class="btn btn-github mr-4 text-white rounded-full capitalize"
-				><img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub</a
-			>
+			<label
+				for="install-modal"
+				class="btn btn-github mr-4 text-white rounded-full capitalize">
+				<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
+			</label>
 		</div>
+		{/if}
 		<div>
 			{#if !$connected}
-				<button class="btn btn-primary mr-4 text-white rounded-full capitalize"
-					><img class="mr-2" src={TONDiamondWhiteLogo} alt="ton logo" width={18} on:click={connect} />Connect TON</button
+				<button class="btn btn-primary mr-4 text-white rounded-full capitalize" on:click={connect}
+					><img class="mr-2" src={TONDiamondWhiteLogo} alt="ton logo" width={18} />Connect TON</button
 				>
 			{:else}
-				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4"
+				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4 rounded-full"
 					>{shortAccountString(10, 5, $address ?? '')}</label
 				>
 			{/if}
@@ -101,6 +102,26 @@
 		<label for="disconnect-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
 		<div class="modal-action">
 			<button class="btn btn-sm" on:click={disconnect}>Disconnect</button>
+		</div>
+	</div>
+</div>
+
+<!--- Installation modal -->
+
+<input
+	type="checkbox"
+	id="install-modal"
+	class="modal-toggle"
+/>
+<div class="modal modal-bottom sm:modal-middle">
+	<div class="modal-box">
+		<h3 class="font-bold text-lg">Install app</h3>
+		<label for="install-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
+		<p class="py-4">Your GitHub organization will be linked to {shortAccountString(10, 5, $address ?? '')} address</p>
+		<div class="modal-action">
+			<a href="https://github.com/apps/gittips-test"
+			target="_blank"
+			rel="noreferrer" class="btn btn-sm" >Install</a>
 		</div>
 	</div>
 </div>

@@ -1,4 +1,4 @@
-import TonConnect, { type Wallet } from '@tonconnect/sdk';
+import TonConnect, { type Wallet, type WalletInfoRemote } from '@tonconnect/sdk';
 import { Address } from 'ton';
 import type { IWallet } from '../wallet';
 
@@ -20,7 +20,7 @@ export default class TonKeeper implements IWallet {
 		this.address = '';
 		this.connector = new TonConnect({
 			manifestUrl:
-				'https://raw.githubusercontent.com/bifrost-defi/bifrost/main/tonconnect-manifest.json'
+				'https://raw.githubusercontent.com/deed-labs/gittips/main/web/tonconnect-manifest.json'
 		});
 	}
 
@@ -28,8 +28,8 @@ export default class TonKeeper implements IWallet {
 		const walletsList = await TonConnect.getWallets();
 
 		const walletConnectionSource = {
-			universalLink: (walletsList[0] as any).universalLink,
-			bridgeUrl: (walletsList[0] as any).bridgeUrl
+			universalLink: (walletsList[0] as WalletInfoRemote).universalLink,
+			bridgeUrl: (walletsList[0] as WalletInfoRemote).bridgeUrl
 		};
 
 		this.connector.onStatusChange((wallet: Wallet | null) => {

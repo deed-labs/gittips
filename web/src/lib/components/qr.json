@@ -7,10 +7,10 @@
 	"imageOptions": {
 		"hideBackgroundDots": true,
 		"imageSize": 0.2,
-		"margin": 5
+		"margin": 0
 	},
 	"dotsOptions": {
-		"type": "rounded",
+		"type": "extra-rounded",
 		"color": "#000000"
 	},
 	"backgroundOptions": {
