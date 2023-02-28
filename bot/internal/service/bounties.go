@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
-	"github.com/deed-labs/gittips/bot/internal/parser"
 	"github.com/deed-labs/gittips/bot/internal/repository"
 )
 
@@ -26,14 +25,14 @@ func (s *BountiesService) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 }
 
 func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error {
-	parsedBody := parser.ParseBody(body)
+	// parsedBody := parser.ParseBody(body)
 
 	bounty := &entity.Bounty{
 		ID:      id,
 		OwnerID: ownerID,
 		Title:   title,
 		URL:     url,
-		Reward:  parsedBody.Reward,
+		Reward:  0, // TODO
 	}
 
 	return s.repository.Bounties().Save(ctx, bounty)

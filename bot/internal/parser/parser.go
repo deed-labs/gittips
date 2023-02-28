@@ -1,17 +1,53 @@
 package parser
 
+import (
+	"bufio"
+	"reflect"
+	"strings"
+)
+
 type Result struct {
 	Commands      []string
-	WalletAddress string
-	Reward        uint64
+	WalletAddress string `set:"wallet,address"`
+	Reward        string `set:"reward"`
 }
 
+var resultType = reflect.TypeOf(Result{})
+
 func ParseBody(body string) Result {
-	res := Result{}
+	resultValue := reflect.ValueOf(Result{}).Elem()
 
-	// TODO
+	scanner := bufio.NewScanner(strings.NewReader(body))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line[:len(actionPrefix)] != actionPrefix {
+			continue
+		}
 
-	return res
+		ss := strings.FieldsFunc(line, func(r rune) bool {
+			return r == ' ' || r == ':'
+		})
+		action := ss[0]
+		value := ss[1]
+
+	SETTER:
+		for i := 0; i < resultType.NumField(); i++ {
+			field := resultType.Field(i)
+			val, found := field.Tag.Lookup("set")
+			if !found {
+				continue
+			}
+
+			for _, v := range strings.Split(val, ",") {
+				if v == action {
+					resultValue.Field(i).SetString(value)
+					break SETTER
+				}
+			}
+		}
+	}
+
+	return resultValue.Interface().(Result)
 }
 
 func SearchLabel(target LabelText, labels []string) bool {
