@@ -34,6 +34,8 @@
 	"type": "module",
 	"dependencies": {
 		"@tonconnect/sdk": "^2.0.7",
+		"axios": "^1.3.4",
+		"bignumber.js": "^9.1.1",
 		"daisyui": "^2.50.2",
 		"qr-code-styling": "^1.6.0-rc.1",
 		"ton": "^13.3.0"
