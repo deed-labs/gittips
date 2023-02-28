@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/deed-labs/gittips/bot/internal/messages"
 	"github.com/deed-labs/gittips/bot/internal/parser"
 	"github.com/deed-labs/gittips/bot/internal/service"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
@@ -12,8 +13,10 @@ import (
 )
 
 type GitHub struct {
-	secret   string
-	client   *github.Client
+	secret string
+	client *github.Client
+	api    *api
+
 	services *service.Services
 }
 
@@ -23,6 +26,7 @@ func New(secret string, httpClient *http.Client, services *service.Services) *Gi
 	return &GitHub{
 		secret:   secret,
 		client:   client,
+		api:      &api{client: client},
 		services: services,
 	}
 }
@@ -66,7 +70,33 @@ func (gh *GitHub) processInstallation(ctx context.Context, id int64, login strin
 }
 
 func (gh *GitHub) processIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error {
-	// TODO: check user permissions
+	var (
+		isMember bool
+		client   *github.Client
+	)
+	switch payload.Repository.Owner.Type {
+	case "User":
+		c, err := gh.api.getUserClient(ctx, payload.Repository.Owner.Login)
+		if err != nil {
+			return err
+		}
+		client = c
+		// NOTE: Only repository owner is allowed to create bounties.
+		isMember = payload.Sender.Login == payload.Repository.Owner.Login
+	case "Organization":
+		c, err := gh.api.getOrganizationClient(ctx, payload.Repository.Owner.Login)
+		if err != nil {
+			return err
+		}
+		client = c
+
+		msStatus, _, err := client.Organizations.IsMember(ctx, payload.Repository.Owner.Login, payload.Sender.Login)
+		if err != nil {
+			return fmt.Errorf("get membership status: %w", err)
+		}
+		isMember = msStatus
+
+	}
 
 	labelNames := make([]string, 0, len(payload.Issue.Labels))
 	for _, v := range payload.Issue.Labels {
@@ -76,6 +106,26 @@ func (gh *GitHub) processIssueEvent(ctx context.Context, payload ghHooks.IssuesP
 	switch {
 	case parser.SearchLabel(parser.CreateBountyLabel, labelNames):
 		if payload.Action == "opened" {
+			if !isMember {
+				comment := &github.IssueComment{
+					Body: &messages.NotEnoughPermissionsToCreateBounty,
+				}
+
+				_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+					payload.Repository.Name, int(payload.Issue.Number), comment)
+				if err != nil {
+					return fmt.Errorf("create comment: %w", err)
+				}
+
+				_, err = client.Issues.RemoveLabelForIssue(ctx, payload.Repository.Owner.Login,
+					payload.Repository.Name, int(payload.Issue.Number), string(parser.CreateBountyLabel))
+				if err != nil {
+					return fmt.Errorf("delete label: %w", err)
+				}
+
+				return nil
+			}
+
 			err := gh.services.Bounties.Create(ctx, payload.Issue.ID, payload.Repository.Owner.ID,
 				payload.Issue.Title, payload.Issue.URL, payload.Issue.Body)
 			if err != nil {
