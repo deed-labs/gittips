@@ -1,50 +1,58 @@
 <script>
 	import Header from '$lib/components/Header.svelte';
 	import TONDiamondBlueLogo from '$lib/images/ton_diamond_blue.png';
+	import { bigIntToFloat } from '$lib/utils';
+
+	 /** @type {import('./$types').PageData} */
+	 export let data;
 
 	// TODO: replace with real data
-	let data = [
+	 data.bounties.push(...[
 		{
-			id: '4',
+			ownerId: 0,
 			title: 'Fix minor bug in interface',
 			owner: 'deed-labs',
 			ownerType: 'organization',
-			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/gittips/issues',
-			reward: '10.0',
+			ownerUrl: 'https://github.com/deed-labs',
+			ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
+			url: 'https://github.com/deed-labs/gittips/issues',
+			reward: '10000000000',
 			rewardUSD: '23.4'
 		},
 		{
-			id: '3',
+			ownerId: 0,
 			title: 'Write tests for parser',
 			owner: 'deed-labs',
 			ownerType: 'organization',
-			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/gittips/issues',
-			reward: '50.0',
+			ownerUrl: 'https://github.com/deed-labs',
+			ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
+			url: 'https://github.com/deed-labs/gittips/issues',
+			reward: '50000000000',
 			rewardUSD: '23.4'
 		},
 		{
-			id: '2',
+			ownerId: 0,
 			title: 'Update fonts',
 			owner: 'deed-labs',
 			ownerType: 'organization',
-			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/gittips/issues',
-			reward: '5.0',
+			ownerUrl: 'https://github.com/deed-labs',
+			ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
+			url: 'https://github.com/deed-labs/gittips/issues',
+			reward: '5000000000',
 			rewardUSD: '23.4'
 		},
 		{
-			id: '1',
+			ownerId: 0,
 			title: 'Implement OAuth authorization',
 			owner: 'deed-labs',
 			ownerType: 'organization',
-			ownerURL: 'https://github.com/deed-labs',
-			link: 'https://github.com/deed-labs/gittips/issues',
-			reward: '250.0',
+			ownerUrl: 'https://github.com/deed-labs',
+			ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
+			url: 'https://github.com/deed-labs/gittips/issues',
+			reward: '250000000000',
 			rewardUSD: '23.4'
 		}
-	];
+	]);
 </script>
 
 <div>
@@ -70,13 +78,13 @@
 			  </thead>
 			  <tbody>
 				<!-- rows -->
-				{#each data as bounty }
+				{#each data.bounties as bounty }
 				<tr class="hover">
 					<td>
 					  <div class="flex items-center space-x-3">
 						<div class="avatar">
 						  <div class="w-10 h-10 rounded">
-							<img src="https://avatars.githubusercontent.com/u/98539501?s=200&v=4" alt="Avatar Tailwind CSS Component" />
+							<img src={bounty.ownerAvatarUrl} alt="Avatar Tailwind CSS Component" />
 						  </div>
 						</div>
 						<div>
@@ -85,19 +93,19 @@
 					  </div>
 					</td>
 					<td>
-					  <a class="link link-primary" href={bounty.ownerURL} target="_blank" rel="noreferrer" >{bounty.owner}</a>
+					  <a class="link link-primary" href={bounty.ownerUrl} target="_blank" rel="noreferrer" >{bounty.owner}</a>
 					  <br/>
 					  <span class="badge badge-ghost badge-sm">{bounty.ownerType}</span>
 					</td>
 					<td>
 						<div class="flex flex-row items-center gap-1">
 							<img src={TONDiamondBlueLogo} alt="ethereum logo" width={17} />
-							<p class="text-lg">{bounty.reward}</p>
+							<p class="text-lg">{bigIntToFloat(bounty.reward, 9, 2)}</p>
 						</div>
 						<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
 					</td>
 					<th>
-						<a class="link link-primary" target="_blank" rel="noreferrer" href={bounty.link}
+						<a class="link link-primary" target="_blank" rel="noreferrer" href={bounty.url}
 						><svg
 							class="h-6 w-6"
 							xmlns="http://www.w3.org/2000/svg"

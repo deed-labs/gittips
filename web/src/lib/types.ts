@@ -1,7 +1,11 @@
-export type BountyData = {
-	id: string;
+export type Bounty = {
+	ownerId: number;
+	owner: string;
+	ownerUrl: string;
+	ownerAvatarUrl: string;
+	ownerType: string;
 	title: string;
-	description: string;
-	reward: number;
-	deadline: Date;
+	url: string;
+	reward: string;
+	rewardUSD: string;
 };
