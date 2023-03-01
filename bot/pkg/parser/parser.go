@@ -15,18 +15,23 @@ type Result struct {
 var resultType = reflect.TypeOf(Result{})
 
 func ParseBody(body string) Result {
-	resultValue := reflect.ValueOf(Result{}).Elem()
+	resultValue := reflect.ValueOf(&Result{}).Elem()
 
 	scanner := bufio.NewScanner(strings.NewReader(body))
 	for scanner.Scan() {
-		line := scanner.Text()
-		if line[:len(actionPrefix)] != actionPrefix {
+		line := strings.Trim(scanner.Text(), "\t\n")
+		if len(line) < len(actionPrefix) || line[:len(actionPrefix)] != actionPrefix {
 			continue
 		}
 
-		ss := strings.FieldsFunc(line, func(r rune) bool {
+		ss := strings.FieldsFunc(line[len(actionPrefix):], func(r rune) bool {
 			return r == ' ' || r == ':'
 		})
+
+		if len(ss) < 2 {
+			continue
+		}
+
 		action := ss[0]
 		value := ss[1]
 

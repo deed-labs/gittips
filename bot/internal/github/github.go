@@ -3,10 +3,10 @@ package github
 import (
 	"context"
 	"fmt"
+	"github.com/deed-labs/gittips/bot/pkg/parser"
 	"net/http"
 
 	"github.com/deed-labs/gittips/bot/internal/messages"
-	"github.com/deed-labs/gittips/bot/internal/parser"
 	"github.com/deed-labs/gittips/bot/internal/service"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
 	"github.com/google/go-github/v50/github"
