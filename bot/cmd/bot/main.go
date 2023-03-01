@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/deed-labs/gittips/bot/configs"
@@ -15,7 +16,11 @@ import (
 	"github.com/deed-labs/gittips/bot/internal/repository/psql"
 	"github.com/deed-labs/gittips/bot/internal/server"
 	"github.com/deed-labs/gittips/bot/internal/service"
+	"github.com/deed-labs/gittips/bot/internal/ton"
 	"github.com/joho/godotenv"
+	"github.com/xssnick/tonutils-go/liteclient"
+	tonUtils "github.com/xssnick/tonutils-go/ton"
+	"github.com/xssnick/tonutils-go/ton/wallet"
 	"go.uber.org/zap"
 )
 
@@ -42,12 +47,31 @@ func main() {
 		cancel()
 	}()
 
+	// Connect to TON
+
+	pool := liteclient.NewConnectionPool()
+	err = pool.AddConnection(ctx, conf.TON.URL, conf.TON.ServerKey)
+	if err != nil {
+		err = fmt.Errorf("add ton connection: %w", err)
+		sugar.Fatal(err)
+	}
+	tonClient := tonUtils.NewAPIClient(pool)
+	seed := strings.Split(conf.TON.WalletSeed, " ")
+	tonWallet, err := wallet.FromSeed(tonClient, seed, wallet.V3)
+	if err != nil {
+		err = fmt.Errorf("wallet from seed: %w", err)
+		sugar.Fatal(err)
+	}
+
+	ton := ton.New(tonClient, tonWallet, conf.TON.RouterContract)
+
 	repo, err := psql.New(conf.PostgresDSN)
 	if err != nil {
 		sugar.Fatal(err)
 	}
 
 	svc := service.New(&service.Deps{
+		TON:        ton,
 		Repository: repo,
 	})
 

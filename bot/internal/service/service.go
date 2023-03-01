@@ -5,6 +5,7 @@ import (
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
 	"github.com/deed-labs/gittips/bot/internal/repository"
+	"github.com/deed-labs/gittips/bot/internal/ton"
 )
 
 type Owners interface {
@@ -27,6 +28,7 @@ type Services struct {
 }
 
 type Deps struct {
+	TON        *ton.TON
 	Repository repository.Repository
 }
 
