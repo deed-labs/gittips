@@ -24,3 +24,10 @@ slice calculate_jetton_wallet_address(cell state_init) inline {
                      .begin_parse();
 }
 
+
+cell pack_budget_with_address(int balance, slice owner_address) inline {
+    return  begin_cell()
+            .store_coins(balance)
+            .store_slice(owner_address)
+            .end_cell();
+}

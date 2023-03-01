@@ -18,8 +18,6 @@
     return (
         ds~load_uint(64), ;; fee_rate
         ds~load_msg_addr() ;; admin_address
-        
-
     );
 }
 
