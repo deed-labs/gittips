@@ -1,0 +1,11 @@
+const int op::add_budget = 1;
+const int op::withdraw_budget = 2;
+const int op::send_payout = 3;
+const int op::set_fee = 4;
+
+;; ~load_body_header returns cell slice and tuple (opcode, query_id) stored in it.
+(slice, (int, int)) ~load_body_header(slice s) inline {
+    int op = s~load_uint(32);
+    int query_id = s~load_uint(64);
+    return (s, (op, query_id));
+}

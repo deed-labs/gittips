@@ -1,2 +1,0 @@
-const int error::invalid_operation = 400;
-const int error::access_denied = 403;
