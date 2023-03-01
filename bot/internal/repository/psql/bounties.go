@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"math/big"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
 )
@@ -29,12 +30,14 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 	bounties := make([]*entity.Bounty, 0)
 
 	for rows.Next() {
+		var reward int64
+
 		bounty := new(entity.Bounty)
 		if err := rows.Scan(
 			&bounty.OwnerID,
 			&bounty.Title,
 			&bounty.URL,
-			&bounty.Reward,
+			&reward,
 			&bounty.OwnerLogin,
 			&bounty.OwnerURL,
 			&bounty.OwnerAvatarURL,
@@ -43,6 +46,7 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 			return nil, fmt.Errorf("scan: %w", err)
 		}
 
+		bounty.Reward = big.NewInt(reward)
 		bounties = append(bounties, bounty)
 	}
 
@@ -57,7 +61,7 @@ func (s *bountiesStorage) Save(ctx context.Context, bounty *entity.Bounty) error
                 )
 	`
 
-	_, err := s.db.ExecContext(ctx, query, bounty.ID, bounty.OwnerID, bounty.Title, bounty.URL, bounty.Reward)
+	_, err := s.db.ExecContext(ctx, query, bounty.ID, bounty.OwnerID, bounty.Title, bounty.URL, bounty.Reward.String())
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}

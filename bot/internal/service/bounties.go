@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
-	"github.com/deed-labs/gittips/bot/internal/parser"
 	"github.com/deed-labs/gittips/bot/internal/repository"
+	"github.com/deed-labs/gittips/bot/pkg/parser"
+	"github.com/xssnick/tonutils-go/tlb"
 )
 
 type BountiesService struct {
@@ -28,12 +30,17 @@ func (s *BountiesService) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error {
 	parsedBody := parser.ParseBody(body)
 
+	parsedReward, err := tlb.FromTON(parsedBody.Reward)
+	if err != nil {
+		return fmt.Errorf("parse reward amount: %w", err)
+	}
+
 	bounty := &entity.Bounty{
 		ID:      id,
 		OwnerID: ownerID,
 		Title:   title,
 		URL:     url,
-		Reward:  parsedBody.Reward,
+		Reward:  parsedReward.NanoTON(),
 	}
 
 	return s.repository.Bounties().Save(ctx, bounty)
