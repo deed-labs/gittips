@@ -51,7 +51,7 @@ func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
 			OwnerType:      v.OwnerType,
 			Title:          v.Title,
 			URL:            v.URL,
-			Reward:         v.Reward,
+			Reward:         v.Reward.String(),
 		})
 	}
 

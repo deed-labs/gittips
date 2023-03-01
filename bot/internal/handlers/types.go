@@ -12,5 +12,5 @@ type Bounty struct {
 	OwnerType      string `json:"owner_type"`
 	Title          string `json:"title"`
 	URL            string `json:"url"`
-	Reward         uint64 `json:"reward"`
+	Reward         string `json:"reward"`
 }

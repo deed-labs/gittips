@@ -1,8 +1,9 @@
 package parser
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseBody(t *testing.T) {
@@ -49,7 +50,7 @@ func TestParseBody(t *testing.T) {
 				quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
 				;; wallet: EQA_HlQjfA0l94sUZJ4dPPodOOZxdOTMy_68077awDIAua-D
-				;; reward: 10.0
+				;; reward: 10,0
 			`,
 			res: Result{
 				WalletAddress: "EQA_HlQjfA0l94sUZJ4dPPodOOZxdOTMy_68077awDIAua-D",

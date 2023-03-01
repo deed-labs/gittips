@@ -1,5 +1,7 @@
 package entity
 
+import "math/big"
+
 type Owner struct {
 	ID              int64
 	Login           string
@@ -18,5 +20,5 @@ type Bounty struct {
 	OwnerType      string
 	Title          string
 	URL            string
-	Reward         uint64
+	Reward         *big.Int
 }

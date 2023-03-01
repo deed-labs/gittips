@@ -52,7 +52,10 @@ func ParseBody(body string) Result {
 		}
 	}
 
-	return resultValue.Interface().(Result)
+	result := resultValue.Interface().(Result)
+	result.Reward = strings.Replace(result.Reward, ",", ".", 1)
+
+	return result
 }
 
 func SearchLabel(target LabelText, labels []string) bool {
