@@ -54,7 +54,14 @@ func TestParseBody(t *testing.T) {
 			`,
 			res: Result{
 				WalletAddress: "EQA_HlQjfA0l94sUZJ4dPPodOOZxdOTMy_68077awDIAua-D",
-				Reward:        "10.0",
+				Reward:        "10,0",
+			},
+		},
+		{
+			text: `;; gt pay
+				;; gt set reward 10,0`,
+			res: Result{
+				Commands: []string{"pay", "set reward 10,0"},
 			},
 		},
 		{
@@ -71,7 +78,7 @@ func TestParseBody(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result := ParseBody(tc.text)
+		result := Parse(tc.text)
 		require.Equal(t, tc.res, result)
 	}
 }
