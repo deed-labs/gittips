@@ -49,12 +49,10 @@ func Parse(body string) Result {
 				if v == action {
 					fieldValue := resultValue.Field(i)
 
-					_, isSlice := fieldValue.Interface().([]string)
-					_, isString := fieldValue.Interface().(string)
-					switch {
-					case isSlice:
+					switch fieldValue.Interface().(type) {
+					case []string:
 						fieldValue.Set(reflect.Append(fieldValue, reflect.ValueOf(value)))
-					case isString:
+					case string:
 						fieldValue.SetString(value)
 					}
 
