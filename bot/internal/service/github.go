@@ -68,32 +68,10 @@ func (s *GithubService) processInstallation(ctx context.Context, id int64, login
 }
 
 func (s *GithubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error {
-	var (
-		isMember bool
-		client   *github.Client
-	)
-	switch payload.Repository.Owner.Type {
-	case "User":
-		c, err := s.getUserClient(ctx, payload.Repository.Owner.Login)
-		if err != nil {
-			return err
-		}
-		client = c
-		// NOTE: Only repository owner is allowed to create bounties.
-		isMember = payload.Sender.Login == payload.Repository.Owner.Login
-	case "Organization":
-		c, err := s.getOrganizationClient(ctx, payload.Repository.Owner.Login)
-		if err != nil {
-			return err
-		}
-		client = c
-
-		msStatus, _, err := client.Organizations.IsMember(ctx, payload.Repository.Owner.Login, payload.Sender.Login)
-		if err != nil {
-			return fmt.Errorf("get membership status: %w", err)
-		}
-		isMember = msStatus
-
+	isMember, client, err := s.getClientAndMembership(ctx, payload.Sender.Login, payload.Repository.Owner.Login,
+		payload.Repository.Owner.Type)
+	if err != nil {
+		return err
 	}
 
 	labelNames := make([]string, 0, len(payload.Issue.Labels))
@@ -105,8 +83,9 @@ func (s *GithubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.I
 	case parser.SearchLabel(parser.CreateBountyLabel, labelNames):
 		if payload.Action == "opened" {
 			if !isMember {
+				reply := fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.NotEnoughPermissionsToCreateBounty)
 				comment := &github.IssueComment{
-					Body: &messages.NotEnoughPermissionsToCreateBounty,
+					Body: &reply,
 				}
 
 				_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
@@ -141,6 +120,31 @@ func (s *GithubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.I
 }
 
 func (s *GithubService) ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error {
+	parsedBody := parser.Parse(payload.Comment.Body)
+	if len(parsedBody.Commands) == 0 {
+		// Ignore comments without any commands.
+		return nil
+	}
+
+	isMember, client, err := s.getClientAndMembership(ctx, payload.Sender.Login, payload.Repository.Owner.Login,
+		payload.Repository.Owner.Type)
+	if err != nil {
+		return err
+	}
+
+	if !isMember {
+		reply := fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.NotEnoughPermissionsToRunCommands)
+		comment := &github.IssueComment{
+			Body: &reply,
+		}
+
+		_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+			payload.Repository.Name, int(payload.Issue.Number), comment)
+		if err != nil {
+			return fmt.Errorf("create comment: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -149,7 +153,63 @@ func (s *GithubService) ProcessNewPR(ctx context.Context, payload ghHooks.PullRe
 }
 
 func (s *GithubService) ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error {
+	parsedBody := parser.Parse(payload.Comment.Body)
+	if len(parsedBody.Commands) == 0 {
+		// Ignore comments without any commands.
+		return nil
+	}
+
+	isMember, client, err := s.getClientAndMembership(ctx, payload.Sender.Login, payload.Repository.Owner.Login,
+		payload.Repository.Owner.Type)
+	if err != nil {
+		return err
+	}
+
+	if !isMember {
+		reply := fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.NotEnoughPermissionsToRunCommands)
+		comment := &github.PullRequestComment{
+			Body: &reply,
+		}
+
+		_, _, err := client.PullRequests.CreateComment(ctx, payload.Repository.Owner.Login,
+			payload.Repository.Name, int(payload.PullRequest.Number), comment)
+		if err != nil {
+			return fmt.Errorf("create comment: %w", err)
+		}
+	}
+
 	return nil
+}
+
+func (s *GithubService) getClientAndMembership(ctx context.Context, user string, owner string, ownerType string) (bool, *github.Client, error) {
+	var (
+		isMember bool
+		client   *github.Client
+	)
+	switch ownerType {
+	case "User":
+		c, err := s.getUserClient(ctx, user)
+		if err != nil {
+			return false, nil, fmt.Errorf("get user client: %w", err)
+		}
+		client = c
+		// NOTE: Only repository owner is allowed to create bounties.
+		isMember = user == owner
+	case "Organization":
+		c, err := s.getOrganizationClient(ctx, owner)
+		if err != nil {
+			return false, nil, fmt.Errorf("get organization client: %w", err)
+		}
+		client = c
+
+		msStatus, _, err := client.Organizations.IsMember(ctx, owner, user)
+		if err != nil {
+			return false, nil, fmt.Errorf("get membership status: %w", err)
+		}
+		isMember = msStatus
+	}
+
+	return isMember, client, nil
 }
 
 func (s *GithubService) getUserClient(ctx context.Context, user string) (*github.Client, error) {

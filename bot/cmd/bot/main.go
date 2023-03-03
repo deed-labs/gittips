@@ -89,6 +89,7 @@ func setupTON(ctx context.Context, config configs.TON) (*ton.TON, error) {
 		return nil, fmt.Errorf("add ton connection: %w", err)
 	}
 	tonClient := tonUtils.NewAPIClient(pool)
+
 	seed := strings.Split(config.WalletSeed, " ")
 	tonWallet, err := wallet.FromSeed(tonClient, seed, wallet.V3)
 	if err != nil {

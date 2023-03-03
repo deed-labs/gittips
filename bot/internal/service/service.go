@@ -21,8 +21,8 @@ type Bounties interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-type Comments interface {
-	Process(ctx context.Context, senderId int64, ownerId int64, body string) error
+type Commands interface {
+	Process(ctx context.Context, ownerId int64, commands []string) error
 }
 
 type Github interface {
@@ -37,7 +37,7 @@ type Github interface {
 type Services struct {
 	Owners   Owners
 	Bounties Bounties
-	Comments Comments
+	Comments Commands
 	Github   Github
 }
 
@@ -50,7 +50,7 @@ type Deps struct {
 func New(deps *Deps) *Services {
 	ownersSvc := NewOwnersService(deps.Repository)
 	bountiesSvc := NewBountiesService(ownersSvc, deps.Repository)
-	commentsSvc := NewCommentsService(deps.TON)
+	commentsSvc := NewCommandsService(deps.TON, deps.Repository)
 	githubSvc := NewGithubService(deps.GithubClient, ownersSvc, bountiesSvc)
 
 	return &Services{
