@@ -6,7 +6,7 @@
 	import QRCodeStyling from 'qr-code-styling';
 
 	import GitHubLogo from '$lib/images/github_logo.png';
-	import { shortAccountString } from '$lib/utils';
+	import { shortAccountString, storeAddressToLocalStorage } from '$lib/utils';
 	import { TON } from '$lib/stores';
 
 	const { connected, address, wallets } = $TON;
@@ -23,6 +23,8 @@
 
 	const onConnected = () => {
 		(document.getElementById('qr-modal') as HTMLInputElement).checked = false;
+		// Store address to local storage only to be able to get it from new tab after installation.
+		storeAddressToLocalStorage($address);
 	};
 
 	const connect = async () => {
@@ -119,7 +121,7 @@
 		<label for="install-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
 		<p class="py-4">Your GitHub organization will be linked to {shortAccountString(10, 5, $address ?? '')} address</p>
 		<div class="modal-action">
-			<a href="https://github.com/apps/gittips-test"
+			<a href="https://github.com/apps/gittips-bot"
 			target="_blank"
 			rel="noreferrer" class="btn btn-sm" >Install</a>
 		</div>

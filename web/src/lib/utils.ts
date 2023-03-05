@@ -7,3 +7,11 @@ export const shortAccountString = (first: number, last: number, str: string) => 
 export const bigIntToFloat = (number: string, decimals: number, precision: number): string => {
 	return new BigNumber(number).div(new BigNumber(10).pow(decimals)).toFixed(precision);
 };
+
+export const storeAddressToLocalStorage = (address: string) => {
+	localStorage.setItem('connected_address', address);
+};
+
+export const loadAddressFromLocalStorage = () => {
+	return localStorage.getItem('connected_address');
+};

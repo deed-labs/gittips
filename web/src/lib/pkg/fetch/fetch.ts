@@ -53,3 +53,10 @@ export const fetchBounties = async (): Promise<Bounty[]> => {
 		return [];
 	}
 };
+
+export const setupInstallation = async (
+	walletAddress: string,
+	installationId: number
+): Promise<void> => {
+	// TODO
+};
