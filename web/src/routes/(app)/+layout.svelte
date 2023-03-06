@@ -1,7 +1,7 @@
 <div class="flex flex-col h-screen justify-between">
 	<slot />
 
-	<footer class="footer footer-center p-5 bg-base-200 gap-5 text-base-content rounded">
+	<footer class="footer footer-center p-5 bg-base-200 gap-5 text-base-content">
 		<div class="grid grid-flow-col gap-4">
 			<a
 				class="link link-hover"

@@ -38,6 +38,7 @@
 		"bignumber.js": "^9.1.1",
 		"daisyui": "^2.50.2",
 		"qr-code-styling": "^1.6.0-rc.1",
+		"svelte-inview": "^3.0.4",
 		"ton": "^13.3.0"
 	}
 }

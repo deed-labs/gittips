@@ -1,6 +1,7 @@
 <script lang="ts">
 	import GittipsLogo from '$lib/images/gittips_logo.png';
 	import TONDiamondWhiteLogo from '$lib/images/ton_diamond_white.png';
+	import TONDiamondBlueLogo from '$lib/images/ton_diamond_blue.png';
 	import * as QROptions from './qr.json';
 
 	import QRCodeStyling from 'qr-code-styling';
@@ -85,7 +86,7 @@
 				>
 			{:else}
 				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4 rounded-full"
-					>{shortAccountString(10, 5, $address ?? '')}</label
+					><img class="mr-2" src={TONDiamondBlueLogo} alt="ton logo" width={18} />{shortAccountString(10, 5, $address ?? '')}</label
 				>
 			{/if}
 		</div>

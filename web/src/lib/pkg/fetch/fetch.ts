@@ -23,7 +23,7 @@ const axiosAPI = axios.create({
 
 export const fetchBounties = async (): Promise<Bounty[]> => {
 	try {
-		const resp = await axiosAPI.get<BountiesRequest>('/bounties', {
+		const resp = await axiosAPI.get<BountiesRequest>('/api/bounties', {
 			headers: { Accept: 'application/json' }
 		});
 
@@ -58,5 +58,22 @@ export const setupInstallation = async (
 	walletAddress: string,
 	installationId: number
 ): Promise<void> => {
-	// TODO
+	const body = JSON.stringify({
+		installation_id: installationId,
+		wallet_address: walletAddress
+	});
+
+	try {
+		const resp = await axiosAPI.post('/setup', body, {
+			headers: { Accept: 'application/json' }
+		});
+
+		if (resp.status != 200) throw new Error('failed to setup installation');
+	} catch (error) {
+		if (axios.isAxiosError(error)) {
+			console.log('error message: ', error.message);
+		} else {
+			console.log('unexpected error: ', error);
+		}
+	}
 };
