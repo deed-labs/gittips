@@ -26,6 +26,8 @@ type Commands interface {
 	Process(ctx context.Context, ownerId int64, commands []string) error
 }
 
+// Github is service for processing github events and interacting with github API.
+// TODO: replace third-party types with our own models?
 type Github interface {
 	ProcessOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error
 	ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error
@@ -39,7 +41,7 @@ type Github interface {
 type Services struct {
 	Owners   Owners
 	Bounties Bounties
-	Comments Commands
+	Commands Commands
 	Github   Github
 }
 
@@ -52,13 +54,13 @@ type Deps struct {
 func New(deps *Deps) *Services {
 	ownersSvc := NewOwnersService(deps.Repository)
 	bountiesSvc := NewBountiesService(ownersSvc, deps.Repository)
-	commentsSvc := NewCommandsService(deps.TON, deps.Repository)
+	commandsSvc := NewCommandsService(deps.TON, deps.Repository)
 	githubSvc := NewGithubService(deps.GithubClient, ownersSvc, bountiesSvc)
 
 	return &Services{
 		Owners:   ownersSvc,
 		Bounties: bountiesSvc,
-		Comments: commentsSvc,
+		Commands: commandsSvc,
 		Github:   githubSvc,
 	}
 }
