@@ -181,6 +181,15 @@ func (s *GithubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 	return nil
 }
 
+func (s *GithubService) ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error {
+	installation, _, err := s.client.Apps.GetInstallation(ctx, installationId)
+	if err != nil {
+		return fmt.Errorf("get installation: %w", err)
+	}
+
+	return s.owners.LinkWithWallet(ctx, *installation.Account.ID, walletAddress)
+}
+
 func (s *GithubService) getClientAndMembership(ctx context.Context, user string, owner string, ownerType string) (bool, *github.Client, error) {
 	var (
 		isMember bool

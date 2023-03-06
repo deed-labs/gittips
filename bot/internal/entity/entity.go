@@ -9,6 +9,7 @@ type Owner struct {
 	AvatarURL       string
 	Type            string
 	TwitterUsername string
+	WalletAddress   string
 }
 
 type Bounty struct {

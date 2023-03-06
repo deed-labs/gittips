@@ -14,7 +14,9 @@ type OwnersService struct {
 }
 
 func NewOwnersService(repository repository.Repository) *OwnersService {
-	return &OwnersService{repository: repository}
+	return &OwnersService{
+		repository: repository,
+	}
 }
 
 func (s *OwnersService) Exists(ctx context.Context, id int64) (bool, error) {
@@ -41,4 +43,9 @@ func (s *OwnersService) Create(ctx context.Context, id int64, login string, url 
 	}
 
 	return s.repository.Owners().Save(ctx, owner)
+}
+
+func (s *OwnersService) LinkWithWallet(ctx context.Context, ownerId int64, walletAddress string) error {
+
+	return nil
 }
