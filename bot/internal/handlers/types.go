@@ -14,3 +14,8 @@ type Bounty struct {
 	URL            string `json:"url"`
 	Reward         string `json:"reward"`
 }
+
+type SetupRequest struct {
+	InstallationID int64  `json:"installation_id"`
+	WalletAddress  string `json:"wallet_address"`
+}

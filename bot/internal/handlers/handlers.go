@@ -43,6 +43,7 @@ func New(services *service.Services, whSecret string, logger *zap.SugaredLogger)
 
 	r := chi.NewRouter()
 	r.Use(middleware.DefaultLogger)
+	r.Post("/setup", h.handleSetup)
 	r.Post("/github", h.handleGithubWebhook)
 	r.Get("/api/bounties", h.handleGetBounties)
 
@@ -124,6 +125,28 @@ func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
 	bountiesResponse := BountyResponse{Bounties: bountiesList}
 
 	if err := json.NewEncoder(w).Encode(bountiesResponse); err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
+		return
 	}
+}
+
+func (h *Handlers) handleSetup(w http.ResponseWriter, r *http.Request) {
+	var req SetupRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+
+		return
+	}
+
+	if err := h.services.Github.ProcessInstallationSetup(r.Context(), req.InstallationID, req.WalletAddress); err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

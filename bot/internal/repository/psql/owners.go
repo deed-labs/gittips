@@ -15,7 +15,7 @@ type ownersStorage struct {
 }
 
 func (s *ownersStorage) Get(ctx context.Context, ownerID int64) (*entity.Owner, error) {
-	query := `SELECT gh_id, login, url, avatar_url, type, twitter_username FROM owners WHERE gh_id=$1`
+	query := `SELECT gh_id, login, url, avatar_url, type, twitter_username, wallet_address FROM owners WHERE gh_id=$1`
 
 	rows, err := s.db.QueryContext(ctx, query, ownerID)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
@@ -36,6 +36,7 @@ func (s *ownersStorage) Get(ctx context.Context, ownerID int64) (*entity.Owner, 
 		&owner.AvatarURL,
 		&owner.Type,
 		&owner.TwitterUsername,
+		&owner.WalletAddress,
 	); err != nil {
 		return nil, fmt.Errorf("scan: %w", err)
 	}
@@ -59,6 +60,17 @@ func (s *ownersStorage) Save(ctx context.Context, owner *entity.Owner) error {
 
 	_, err := s.db.ExecContext(ctx, query, owner.ID, owner.Login, owner.URL, owner.AvatarURL,
 		owner.Type, owner.TwitterUsername)
+	if err != nil {
+		return fmt.Errorf("exec: %w", err)
+	}
+
+	return nil
+}
+
+func (s *ownersStorage) SetWalletAddress(ctx context.Context, ownerId int64, walletAddress string) error {
+	query := `UPDATE owners SET wallet_address = $1 WHERE gh_id = $2`
+
+	_, err := s.db.ExecContext(ctx, query, ownerId, walletAddress)
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}

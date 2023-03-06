@@ -13,6 +13,7 @@ import (
 type Owners interface {
 	Exists(ctx context.Context, id int64) (bool, error)
 	Create(ctx context.Context, id int64, login string, url string, avatarURL string, ownerType string) error
+	LinkWithWallet(ctx context.Context, ownerId int64, walletAddress string) error
 }
 
 type Bounties interface {
@@ -32,6 +33,7 @@ type Github interface {
 	ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error
 	ProcessNewPR(ctx context.Context, payload ghHooks.PullRequestPayload) error
 	ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error
+	ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error
 }
 
 type Services struct {

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS owners (
     avatar_url varchar(160),
     type varchar(20),
     twitter_username varchar(128),
+    wallet_address varchar(64) default '',
 
     UNIQUE (gh_id)
 );
