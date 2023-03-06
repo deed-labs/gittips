@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	ghHooks "github.com/go-playground/webhooks/v6/github"
+	"net/http"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
 	"github.com/deed-labs/gittips/bot/internal/repository"
+	"github.com/deed-labs/gittips/bot/internal/ton"
 )
 
 type Owners interface {
@@ -18,24 +21,42 @@ type Bounties interface {
 	Delete(ctx context.Context, id int64) error
 }
 
-type Chain interface {
+type Commands interface {
+	Process(ctx context.Context, ownerId int64, commands []string) error
+}
+
+type Github interface {
+	ProcessOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error
+	ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error
+	ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error
+	ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error
+	ProcessNewPR(ctx context.Context, payload ghHooks.PullRequestPayload) error
+	ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error
 }
 
 type Services struct {
 	Owners   Owners
 	Bounties Bounties
+	Comments Commands
+	Github   Github
 }
 
 type Deps struct {
-	Repository repository.Repository
+	TON          *ton.TON
+	GithubClient *http.Client
+	Repository   repository.Repository
 }
 
 func New(deps *Deps) *Services {
 	ownersSvc := NewOwnersService(deps.Repository)
 	bountiesSvc := NewBountiesService(ownersSvc, deps.Repository)
+	commentsSvc := NewCommandsService(deps.TON, deps.Repository)
+	githubSvc := NewGithubService(deps.GithubClient, ownersSvc, bountiesSvc)
 
 	return &Services{
 		Owners:   ownersSvc,
 		Bounties: bountiesSvc,
+		Comments: commentsSvc,
+		Github:   githubSvc,
 	}
 }

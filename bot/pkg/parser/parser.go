@@ -6,15 +6,17 @@ import (
 	"strings"
 )
 
+// Result stores parsed values.
+// TODO: pass result struct as a pointer to the Parse to make parser more flexible.
 type Result struct {
-	Commands      []string
-	WalletAddress string `set:"wallet,address"`
-	Reward        string `set:"reward"`
+	Commands      []string `set:"gt"`
+	WalletAddress string   `set:"wallet,address"`
+	Reward        string   `set:"reward"`
 }
 
 var resultType = reflect.TypeOf(Result{})
 
-func ParseBody(body string) Result {
+func Parse(body string) Result {
 	resultValue := reflect.ValueOf(&Result{}).Elem()
 
 	scanner := bufio.NewScanner(strings.NewReader(body))
@@ -32,30 +34,35 @@ func ParseBody(body string) Result {
 			continue
 		}
 
-		action := ss[0]
-		value := ss[1]
+		action := strings.ToLower(ss[0])
+		value := strings.Join(ss[1:], " ")
 
 	SETTER:
 		for i := 0; i < resultType.NumField(); i++ {
 			field := resultType.Field(i)
-			val, found := field.Tag.Lookup("set")
-			if !found {
+			val, isSettable := field.Tag.Lookup("set")
+			if !isSettable {
 				continue
 			}
 
 			for _, v := range strings.Split(val, ",") {
 				if v == action {
-					resultValue.Field(i).SetString(value)
+					fieldValue := resultValue.Field(i)
+
+					switch fieldValue.Interface().(type) {
+					case []string:
+						fieldValue.Set(reflect.Append(fieldValue, reflect.ValueOf(value)))
+					case string:
+						fieldValue.SetString(value)
+					}
+
 					break SETTER
 				}
 			}
 		}
 	}
 
-	result := resultValue.Interface().(Result)
-	result.Reward = strings.Replace(result.Reward, ",", ".", 1)
-
-	return result
+	return resultValue.Interface().(Result)
 }
 
 func SearchLabel(target LabelText, labels []string) bool {

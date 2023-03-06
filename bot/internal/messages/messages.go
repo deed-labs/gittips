@@ -5,3 +5,7 @@ You do not have sufficient permissions to create a bounty. Please check organiza
 
 Bounty label will be removed.
 `
+
+var NotEnoughPermissionsToRunCommands = `
+You are not allowed to run commands on this repository. 
+`

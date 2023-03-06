@@ -3,20 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
-
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/deed-labs/gittips/bot/configs"
-	"github.com/deed-labs/gittips/bot/internal/github"
 	"github.com/deed-labs/gittips/bot/internal/handlers"
 	"github.com/deed-labs/gittips/bot/internal/repository/psql"
 	"github.com/deed-labs/gittips/bot/internal/server"
 	"github.com/deed-labs/gittips/bot/internal/service"
+	"github.com/deed-labs/gittips/bot/internal/ton"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -47,22 +46,28 @@ func main() {
 		sugar.Fatal(err)
 	}
 
+	ton, err := setupTON(ctx, conf.TON)
+	if err != nil {
+		err = fmt.Errorf("setup ton: %w", err)
+		sugar.Fatal(err)
+	}
+
+	ghClient, err := setupGithubClient(conf.Github)
+	if err != nil {
+		err = fmt.Errorf("setup github client: %w", err)
+		sugar.Fatal(err)
+	}
+
 	svc := service.New(&service.Deps{
-		Repository: repo,
+		TON:          ton,
+		GithubClient: ghClient,
+		Repository:   repo,
 	})
 
-	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, conf.GitHubAppID, conf.GitHubAppPkPath)
+	handler, err := handlers.New(svc, conf.Github.WebhookSecret, sugar)
 	if err != nil {
 		sugar.Fatal(err)
 	}
-
-	gh := github.New(conf.GitHubWebhookSecret, &http.Client{Transport: itr}, svc)
-	ghHandler, err := github.NewHandler(gh, sugar)
-	if err != nil {
-		sugar.Fatal(err)
-	}
-
-	handler := handlers.New(ghHandler.Handle, svc)
 	srv := server.New(handler.HTTP(), conf.ServerPort)
 
 	log.Println("Listening...")
@@ -70,4 +75,33 @@ func main() {
 		err = fmt.Errorf("run: %w", err)
 		sugar.Fatal(err)
 	}
+}
+
+func setupTON(ctx context.Context, config configs.TON) (*ton.TON, error) {
+	// TODO: uncomment after contract deployed
+	//pool := liteclient.NewConnectionPool()
+	//err := pool.AddConnection(ctx, config.URL, config.ServerKey)
+	//if err != nil {
+	//	return nil, fmt.Errorf("add ton connection: %w", err)
+	//}
+	//tonClient := tonUtils.NewAPIClient(pool)
+	//
+	//seed := strings.Split(config.WalletSeed, " ")
+	//tonWallet, err := wallet.FromSeed(tonClient, seed, wallet.V3)
+	//if err != nil {
+	//	return nil, fmt.Errorf("wallet from seed: %w", err)
+	//}
+	//
+	//return ton.New(tonClient, tonWallet, config.RouterContract), nil
+
+	return &ton.TON{}, nil
+}
+
+func setupGithubClient(config configs.Github) (*http.Client, error) {
+	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, config.AppID, config.PkPath)
+	if err != nil {
+		return nil, fmt.Errorf("create transport: %w", err)
+	}
+
+	return &http.Client{Transport: itr}, nil
 }
