@@ -70,7 +70,7 @@ func (s *ownersStorage) Save(ctx context.Context, owner *entity.Owner) error {
 func (s *ownersStorage) SetWalletAddress(ctx context.Context, ownerId int64, walletAddress string) error {
 	query := `UPDATE owners SET wallet_address = $1 WHERE gh_id = $2`
 
-	_, err := s.db.ExecContext(ctx, query, ownerId, walletAddress)
+	_, err := s.db.ExecContext(ctx, query, walletAddress, ownerId)
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}

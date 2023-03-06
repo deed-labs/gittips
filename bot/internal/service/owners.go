@@ -46,6 +46,5 @@ func (s *OwnersService) Create(ctx context.Context, id int64, login string, url 
 }
 
 func (s *OwnersService) LinkWithWallet(ctx context.Context, ownerId int64, walletAddress string) error {
-
-	return nil
+	return s.repository.Owners().SetWalletAddress(ctx, ownerId, walletAddress)
 }
