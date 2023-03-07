@@ -3,51 +3,46 @@
 #include "utils/utils.fc";
 #include "op-codes.fc";
 
-const int fee::budget_deploy = 200000000; ;; 0.2 TON
+const int fee::budget_deploy = 200000000;   ;; 0.2 TON
 
-;; save data (fee_rate - const fee in ton, admin address)
-;; fee_rate:uint8
-;; admin_addr:MsgAddress
-;; budget_code:^Cell
-() save_data(int fee_rate, slice admin_address, cell budget_code) impure inline {
+() save_data(int fee_rate, slice admin_addr, cell budget_code) impure inline {
     set_data(begin_cell()
-                .store_uint(fee_rate, 8)
-                .store_slice(admin_address)
-                .store_ref(budget_code)
-            .end_cell());
+        .store_uint(fee_rate, 8)    ;; fee_rate:uint8
+        .store_slice(admin_addr)    ;; admin_addr:MsgAddress
+        .store_ref(budget_code)     ;; budget_code:^Cell
+    .end_cell());
 }
 
-;; load data (fee_rate - const fee in ton)
 (int, slice, cell) load_data() inline {
     slice ds = get_data().begin_parse();
 
     return (
-        ds~load_uint(8),    ;; fee_rate
-        ds~load_msg_addr(), ;; admin_address
-        ds~load_ref()       ;; budget_code
+        ds~load_uint(8),    ;; fee_rate:uint8
+        ds~load_msg_addr(), ;; admin_address:MsgAddress
+        ds~load_ref()       ;; budget_code:^Cell
     );
 }
 
 slice add_budget(int amount, slice owner_address) impure {
-    (_, _, budget_code) = load_data();
+    (_, _, cell budget_code) = load_data();
 
     cell budget_state_init = calculate_budget_state_init(owner_address, budget_code);
     slice budget_address = calculate_address_by_state_init(budget_state_init);
 
     cell master_msg = begin_cell()
-                        .store_uint(op::add_budget, 32)
-                        .store_uint(0, 64)
-                        .store_coins(amount)
-                    .end_cell();
+                    .store_uint(op::add_budget, 32)
+                    .store_uint(0, 64)
+                    .store_coins(amount)
+                .end_cell();
 
-    cell msg = begin_cell() 
-                     .store_uint(0x18, 6)
-                    .store_slice(budget_address)
-                    .store_coins(fee::budget_deploy)
-                    .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
-                    .store_ref(budget_state_init)
-                    .store_ref(master_msg)
-            .end_cell();
+    cell msg = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(budget_address)
+            .store_coins(fee::budget_deploy)
+            .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+            .store_ref(budget_state_init)
+            .store_ref(master_msg)
+        .end_cell();
 
     ;; send mode - 1 to pay transfer fees separately and revert on errors.
     send_raw_message(msg, 1); 
@@ -55,38 +50,40 @@ slice add_budget(int amount, slice owner_address) impure {
     return budget_address;
 }
 
-() recv_internal(int msg_value, cell in_msg_full, slice in_msg_body) impure {
-    var cs = in_msg_full.begin_parse();  
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4); ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
 
     if (flags & 1) {
-        return (); ;; ignore all bounced messages
+        return ();  ;; ignore all bounced messages
     }
 
     if (in_msg_body.slice_empty?()) {
-        return (); ;; ignore empty messages
+        return ();  ;; ignore empty messages
     }
 
-    slice sender_address = cs~load_msg_addr();
-    (_, int sender_address_hash) = parse_std_addr(sender_address);
+    slice sender_address = cs~load_msg_addr();                      ;; sender:MsgAddress
+    (_, int sender_address_hash) = parse_std_addr(sender_address);  ;; sender_addr_hash:uint256
 
-    (int op, int query_id) = in_msg_body~load_body_header();
 
-    ;; add budget to 'organization' wallet == sender address
+    (int op, int query_id) = in_msg_body~load_body_header(); ;; body_header:int_msg_info$10 query_id:uint64 op:uint32
+
     if (op == op::add_budget) {
-        throw_if(error::invalid_operation, amount < fee::budget_deploy);
+        throw_if(error::invalid_operation, msg_value < fee::budget_deploy);
 
-        throw_unless(error::access_denied, equal_slices(sender_address, curr_address)); ;; check admin access
+        ;; throw_unless(error::access_denied, equal_slices(sender_address, curr_address)); ;; check admin access
 
-        add_budget(msg_value, sender_address)
+        add_budget(msg_value, sender_address);
 
-        return ();
+        return();
     }
 
     if (op == op::withdraw_budget) {
-        slice budget_address = caculate_budget_address(sender_address, budget_code);
+        (_, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
 
-        int amount = in_msg_body~load_coins();
+        slice budget_address = calculate_budget_address(sender_address, budget_code);    ;; budget_address:MsgAddress
+
+        int amount = in_msg_body~load_coins(); ;; amount:uint64
 
         cell master_msg = begin_cell()
                     .store_slice(sender_address)
@@ -94,12 +91,12 @@ slice add_budget(int amount, slice owner_address) impure {
                 .end_cell();
 
         cell msg = begin_cell()
-                    .store_uint(0x18, 6)
-                    .store_slice(budget_address)
-                    .store_coins(0)
-                    .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
-                    .store_ref(master_msg)
-                .end_cell();
+                .store_uint(0x18, 6)
+                .store_slice(budget_address)
+                .store_coins(0)
+                .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_ref(master_msg)
+            .end_cell();
 
         ;; send mode - 1 to pay transfer fees separately and revert on errors.
         send_raw_message(msg, 1); 
@@ -107,23 +104,54 @@ slice add_budget(int amount, slice owner_address) impure {
         return ();
     }
 
-    ;; set fee rate (for admin only)
+    if (op == op::send_payout) {
+        (_, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+
+        slice budget_address = calculate_budget_address(sender_address, budget_code);   ;; budget_address:MsgAddress
+
+        slice receiver_address = in_msg_body~load_msg_addr();   ;; receiver_address:MsgAddress
+        int amount = in_msg_body~load_coins();                  ;; amount:uint64
+
+        cell master_msg = begin_cell()
+                    .store_slice(sender_address)
+                    .store_slice(receiver_address)
+                    .store_coins(amount)
+                .end_cell();
+
+        cell msg = begin_cell()
+                .store_uint(0x18, 6)
+                .store_slice(budget_address)
+                .store_coins(0)
+                .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_ref(master_msg)
+            .end_cell();
+
+        ;; send mode - 1 to pay transfer fees separately and revert on errors.
+        send_raw_message(msg, 1); 
+
+        return ();
+    }
+
     if (op == op::set_fee) {
-        (_, admin_addr, budget_code) = load_data();
-        (_, int admin_address_hash) = parse_std_addr(admin_addr);
+        (_, slice admin_addr, cell budget_code) = load_data();      ;; admin_addr:MsgAddress budget_code:^Cell
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
 
-        throw_if(error::access_denied, admin_address_hash != sender_address_hash); ;; check admin access
-        
-        int fee_rate = in_msg_body~load_int(8);
+        throw_if(error::access_denied, admin_address_hash != sender_address_hash);  ;; check admin access
 
-        save_data(fee_rate, admin_address, budget_code);
+        int fee_rate = in_msg_body~load_uint(8); ;; fee_rate:uint8
 
-        return ();
+        save_data(fee_rate, admin_addr ,budget_code);
+
+        return();
     }
 
-    if (op == op::send_payout()) {
-        return ();
+    ;; TODO
+    if (op == op::get_budget) {
+        return();
     }
 
-    throw(0xffff);
+    ;; TODO
+    if (op == op::get_fee) {
+        return();
+    }
 }

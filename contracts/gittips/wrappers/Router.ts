@@ -1,28 +1,28 @@
 import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode } from 'ton-core';
 
-export type SendBountyConfig = {};
+export type RouterConfig = {};
 
-export function sendBountyConfigToCell(config: SendBountyConfig): Cell {
+export function routerConfigToCell(config: RouterConfig): Cell {
     return beginCell().endCell();
 }
 
-export class SendBounty implements Contract {
+export class Router implements Contract {
     constructor(readonly address: Address, readonly init?: { code: Cell; data: Cell }) {}
 
     static createFromAddress(address: Address) {
-        return new SendBounty(address);
+        return new Router(address);
     }
 
-    static createFromConfig(config: SendBountyConfig, code: Cell, workchain = 0) {
-        const data = sendBountyConfigToCell(config);
+    static createFromConfig(config: RouterConfig, code: Cell, workchain = 0) {
+        const data = routerConfigToCell(config);
         const init = { code, data };
-        return new SendBounty(contractAddress(workchain, init), init);
+        return new Router(contractAddress(workchain, init), init);
     }
 
     async sendDeploy(provider: ContractProvider, via: Sender, value: bigint) {
         await provider.internal(via, {
             value,
-            sendMode: SendMode.PAY_GAS_SEPARATLY,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell().endCell(),
         });
     }

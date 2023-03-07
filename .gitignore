@@ -3,3 +3,4 @@
 .env
 
 contracts/gitTips/node_modules/
+contracts/gitTips/build/
