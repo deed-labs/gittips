@@ -1,5 +1,6 @@
 <script lang="ts">
 	import IssueScreenshot from '$lib/images/issue_screenshot.png'
+	import CommentScreenshot from '$lib/images/comment_screenshot.png'
 
 	import Header from '$lib/components/Header.svelte';
 	import { fade, fly } from 'svelte/transition';
@@ -18,7 +19,7 @@
 
 <Header class="bg-base-200" />
 
-<div class="hero min-h-full bg-base-200">
+<div class="hero min-h-screen bg-base-200">
 	<div class="hero-content text-center">
 		{#if ready}
 			<div class="max-w-xl" in:fly={{ y: 200, duration: 1500 }}>
@@ -44,8 +45,8 @@
 	</div>
 </div>
 
-<div class="flex flex-row items-center bg-base-200 py-12">
-	<div class="flex flex-col justify-center items-center w-2/12 md:w-1/12 h-full">
+<div class="flex flex-row items-stretch py-12 max-w-screen-2xl m-auto bg-base-200">
+	<div class="flex flex-col justify-center items-center w-2/12 md:w-1/12">
 		<ul class="steps steps-vertical h-full">
 			<li data-content="✨" class={"step " + (isInView[0] ? "step-primary" : "")}></li>
 			<li data-content="💰" class={"step " + (isInView[1] ? "step-primary" : "")}></li>
@@ -53,7 +54,7 @@
 		  </ul>
 	</div>
 	<div class="w-10/12 md:w-11/12 h-full">
-		<div class="flex flex-col md:flex-row items-center gap-5 bg-base-200 p-12 md:h-96"
+		<div class="flex flex-col md:flex-row items-center gap-5 p-12 md:h-96"
 			use:inview={{ unobserveOnEnter: true, rootMargin: '-20%' }}
 			on:change={({ detail }) => {
 				isInView[0] = detail.inView;
@@ -70,12 +71,12 @@
 				<div class="flex justify-center w-full md:w-1/2"
 					in:fly={{ x: 200, duration: 1000 }}
 				>
-					<img class="card shadow-xl image-full w-full md:w-5/6" src={IssueScreenshot} alt="issue example"/>
+					<img class="card shadow-lg shadow-primary image-full w-full md:w-5/6" src={IssueScreenshot} alt="issue example"/>
 				</div>
 			{/if}
 		</div>
 
-		<div class="flex flex-col-reverse md:flex-row items-center gap-5 bg-base-200 p-12 md:h-96"
+		<div class="flex flex-col-reverse md:flex-row items-center gap-5 p-12 md:h-96"
 			use:inview={{ unobserveOnEnter: true, rootMargin: '-20%' }}
 			on:change={({ detail }) => {
 				isInView[1] = detail.inView;
@@ -85,19 +86,18 @@
 				<div class="w-full md:w-1/2"
 					in:fly={{ x: -200, duration: 1000 }}
 				>
-					 <!--TODO: replace image -->
-					<img class="card shadow-xl image-full w-full md:w-5/6" src={IssueScreenshot} alt="issue example"/>	
+					<img class="card shadow-lg shadow-primary w-full md:w-5/6" src={CommentScreenshot} alt="issue example"/>	
 				</div>
 				<div class="w-full md:w-1/2"
 					in:fly={{ x: 200, duration: 1000 }}
 				>
 					<h1 class="text-4xl font-bold">Budget Control</h1>
-					<p  class="text-xl pt-5">Each organization or user has its own balance reserved on the smart contract. So they can't accidentally spend more than planned.</p>
+					<p  class="text-xl pt-5">Each organization and user has its own balance reserved on the smart contract. So they can't accidentally spend more than planned.</p>
 				</div>
 			{/if}
 		</div>
 
-		<div class="flex flex-col md:flex-row items-center gap-5 bg-base-200 p-12 h-full md:h-96"
+		<div class="flex flex-col md:flex-row items-center gap-5 p-12 h-full md:h-96"
 			use:inview={{ unobserveOnEnter: true, rootMargin: '-20%' }}
 			on:change={({ detail }) => {
 				isInView[2] = detail.inView;
@@ -114,7 +114,7 @@
 					in:fly={{ x: 200, duration: 1000 }}
 				>
 				    <!--TODO: replace image -->
-					<img class="card shadow-xl image-full w-full md:w-5/6" src={IssueScreenshot} alt="issue example"/>
+					<img class="card shadow-lg shadow-primary  image-full w-full md:w-5/6" src={IssueScreenshot} alt="issue example"/>
 				</div>
 			{/if}
 		</div>

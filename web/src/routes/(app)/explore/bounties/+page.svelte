@@ -55,7 +55,7 @@
 	]);
 </script>
 
-<div>
+<div class="bg-base-100">
 	<Header
 		breadcrumbs={[
 			{ name: 'explore', href: '' },
