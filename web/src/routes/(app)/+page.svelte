@@ -1,6 +1,8 @@
 <script lang="ts">
 	import IssueScreenshot from '$lib/images/issue_screenshot.png'
 	import CommentScreenshot from '$lib/images/comment_screenshot.png'
+	import PaymentScreenshot from '$lib/images/payment_screenshot.png'
+
 
 	import Header from '$lib/components/Header.svelte';
 	import { fade, fly } from 'svelte/transition';
@@ -17,7 +19,7 @@
 	};
 </script>
 
-<Header class="bg-base-200" />
+<Header class="bg-base-200"/>
 
 <div class="hero min-h-screen bg-base-200">
 	<div class="hero-content text-center">
@@ -113,8 +115,7 @@
 				<div class="flex justify-center w-full md:w-1/2"
 					in:fly={{ x: 200, duration: 1000 }}
 				>
-				    <!--TODO: replace image -->
-					<img class="card shadow-lg shadow-primary  image-full w-full md:w-5/6" src={IssueScreenshot} alt="issue example"/>
+					<img class="card shadow-lg shadow-primary  image-full w-full md:w-5/6" src={PaymentScreenshot} alt="issue example"/>
 				</div>
 			{/if}
 		</div>
