@@ -52,7 +52,7 @@
 
 <div class={'navbar max-w-screen-2xl m-auto bg-base-100 ' + classProps}>
 	<div class="flex-1">
-		<a class="btn btn-ghost normal-case text-xl" href="/"
+		<a class="btn btn-ghost normal-case text-xl text-white" href="/"
 			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
 		>
 		<div class="text-sm breadcrumbs text-info mx-4">
