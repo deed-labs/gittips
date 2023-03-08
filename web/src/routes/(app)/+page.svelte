@@ -12,18 +12,18 @@
 	let ready = false;
 	onMount(() => (ready = true));
 
-	// array for storing block animation status
+	// array for storing blocks animation statuses
 	let isInView: boolean[] = new Array(4);
 </script>
 
-<Header class="bg-base-200"/>
+<Header class="bg-base-100"/>
 
-<div class="hero min-h-screen bg-base-200">
+<div class="hero min-h-screen">
 	<div class="hero-content text-center">
 		{#if ready}
 			<div class="max-w-4xl" in:fly={{ y: 200, duration: 1500 }}>
 				<h1 class="text-7xl font-bold text-white">Reward the community, fuel innovation</h1>
-				<p class="text-lg py-10 text-gray-400">
+				<p class="text-xl py-10 text-gray-400">
 					Gittips is a bot for GitHub that enables owners of open-source projects to reward contributors with cryptocurrency
 				</p>
 				<div class="flex flex-col md:flex-row items-center justify-center gap-4">
@@ -50,7 +50,7 @@
 	}}
 >
 	{#if isInView[0]}
-		<div in:fly={{ y: 100, duration: 1500 }}>
+		<div in:fade={{ duration: 1500 }}>
 			<h2 class="text-4xl text-white font-bold">Our solution does not interfere with your <span class="text-primary">usual workflow</span></h2>
 			<p class="text-2xl text-gray-400 mt-5">
 				Create tasks and send payments without leaving GitHub
@@ -59,7 +59,7 @@
 	{/if}
 </div>
 
-<div class="flex flex-row items-stretch py-12 max-w-screen-2xl m-auto bg-base-200 text-white">
+<div class="flex flex-row items-stretch py-12 max-w-screen-2xl m-auto text-white">
 	<div class="flex flex-col justify-center items-center w-2/12 md:w-1/12">
 		<ul class="steps steps-vertical h-full">
 			<li data-content="✨" class={"step " + (isInView[1] ? "step-primary" : "")}></li>
@@ -134,7 +134,7 @@
 	</div>
 </div>
 
-<div class="bg-accent py-12">
+<div class="py-12">
 	<div class="text-center my-12">
 		<h1 class="text-white text-4xl">Empower your developer community</h1>
 		<a
@@ -143,5 +143,16 @@
 			rel="noreferrer"
 			href="https://deed-labs.gitbook.io/gittips/">Try it out</a
 		>
+	</div>
+</div>
+
+<div class="flex items-center justify-center my-12">
+	<div class="card bg-gray-700 w-full md:w-2/3 text-center p-12">
+		<h1 class="text-white text-4xl">Roadmap 2023</h1>
+		<ul class="steps steps-vertical md:steps-horizontal mt-12 text-white">
+			<li data-content="Q1" class="step step-primary">Launch</li>
+			<li data-content="Q1" class="step">NFT Rewards Support</li>
+			<li data-content="Q2" class="step">Deeper GitHub integration</li>
+		  </ul>
 	</div>
 </div>
