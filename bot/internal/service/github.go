@@ -3,33 +3,35 @@ package service
 import (
 	"context"
 	"fmt"
-	"golang.org/x/oauth2"
 	"net/http"
 
 	"github.com/deed-labs/gittips/bot/internal/messages"
-	"github.com/deed-labs/gittips/bot/pkg/parser"
+	"github.com/deed-labs/gittips/bot/internal/parser"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
 	"github.com/google/go-github/v50/github"
+	"golang.org/x/oauth2"
 )
 
-type GithubService struct {
+type GitHubService struct {
 	client *github.Client
 
 	owners   Owners
 	bounties Bounties
+	commands Commands
 }
 
-func NewGithubService(httpClient *http.Client, owners Owners, bounties Bounties) *GithubService {
+func NewGitHubService(httpClient *http.Client, owners Owners, bounties Bounties, commands Commands) *GitHubService {
 	client := github.NewClient(httpClient)
 
-	return &GithubService{
+	return &GitHubService{
 		client:   client,
 		owners:   owners,
 		bounties: bounties,
+		commands: commands,
 	}
 }
 
-func (s *GithubService) ProcessOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error {
+func (s *GitHubService) ProcessOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error {
 	return s.processInstallation(
 		ctx,
 		payload.Installation.Account.ID,
@@ -40,7 +42,7 @@ func (s *GithubService) ProcessOrganizationInstallation(ctx context.Context, pay
 	)
 }
 
-func (s *GithubService) ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error {
+func (s *GitHubService) ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error {
 	return s.processInstallation(
 		ctx,
 		payload.Installation.Account.ID,
@@ -51,7 +53,7 @@ func (s *GithubService) ProcessRepositoriesInstallation(ctx context.Context, pay
 	)
 }
 
-func (s *GithubService) processInstallation(ctx context.Context, id int64, login string, url string, avatarURL string, ownerType string) error {
+func (s *GitHubService) processInstallation(ctx context.Context, id int64, login string, url string, avatarURL string, ownerType string) error {
 	ownerExists, err := s.owners.Exists(ctx, id)
 	if err != nil {
 		return err
@@ -67,7 +69,7 @@ func (s *GithubService) processInstallation(ctx context.Context, id int64, login
 	return nil
 }
 
-func (s *GithubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error {
+func (s *GitHubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error {
 	isMember, client, err := s.getClientAndMembership(ctx, payload.Sender.Login, payload.Repository.Owner.Login,
 		payload.Repository.Owner.Type)
 	if err != nil {
@@ -119,7 +121,7 @@ func (s *GithubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.I
 	return nil
 }
 
-func (s *GithubService) ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error {
+func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error {
 	parsedBody := parser.Parse(payload.Comment.Body)
 	if len(parsedBody.Commands) == 0 {
 		// Ignore comments without any commands.
@@ -145,14 +147,43 @@ func (s *GithubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 		}
 	}
 
+	for _, v := range parsedBody.Commands {
+		cmd := s.commands.Parse(v)
+		if cmd == nil {
+			continue
+		}
+
+		switch c := cmd.(type) {
+		case *SendPaymentCommand:
+			toOwner, _, err := client.Users.Get(ctx, c.To)
+			if err != nil {
+				// Create comment with invalid username warning
+				return fmt.Errorf("get user by login: %w", err)
+			}
+			if err := c.Run(ctx, *toOwner.ID, c.Value); err != nil {
+				return fmt.Errorf("run command: %w", err)
+			}
+		case *SetWalletCommand:
+			if err := c.Run(ctx, payload.Sender.ID, c.WalletAddress); err != nil {
+				return fmt.Errorf("run command: %w", err)
+			}
+		case *SetRewardCommand:
+			if err := c.Run(ctx, payload.Issue.ID, c.RewardValue); err != nil {
+				return fmt.Errorf("run command: %w", err)
+			}
+		default:
+			continue
+		}
+	}
+
 	return nil
 }
 
-func (s *GithubService) ProcessNewPR(ctx context.Context, payload ghHooks.PullRequestPayload) error {
+func (s *GitHubService) ProcessNewPR(ctx context.Context, payload ghHooks.PullRequestPayload) error {
 	return nil
 }
 
-func (s *GithubService) ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error {
+func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error {
 	parsedBody := parser.Parse(payload.Comment.Body)
 	if len(parsedBody.Commands) == 0 {
 		// Ignore comments without any commands.
@@ -178,10 +209,38 @@ func (s *GithubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 		}
 	}
 
+	for _, v := range parsedBody.Commands {
+		cmd := s.commands.Parse(v)
+		if cmd == nil {
+			continue
+		}
+
+		switch c := cmd.(type) {
+		case *SendPaymentCommand:
+			toOwner, _, err := client.Users.Get(ctx, c.To)
+			if err != nil {
+				// Create comment with invalid username warning
+				return fmt.Errorf("get user by login: %w", err)
+			}
+			if err := c.Run(ctx, *toOwner.ID, c.Value); err != nil {
+				return fmt.Errorf("run command: %w", err)
+			}
+		case *SetWalletCommand:
+			if err := c.Run(ctx, payload.Sender.ID, c.WalletAddress); err != nil {
+				return fmt.Errorf("run command: %w", err)
+			}
+		case *SetRewardCommand:
+			// Not supported for pull request for now
+			continue
+		default:
+			continue
+		}
+	}
+
 	return nil
 }
 
-func (s *GithubService) ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error {
+func (s *GitHubService) ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error {
 	installation, _, err := s.client.Apps.GetInstallation(ctx, installationId)
 	if err != nil {
 		return fmt.Errorf("get installation: %w", err)
@@ -190,7 +249,7 @@ func (s *GithubService) ProcessInstallationSetup(ctx context.Context, installati
 	return s.owners.LinkWithWallet(ctx, *installation.Account.ID, walletAddress)
 }
 
-func (s *GithubService) getClientAndMembership(ctx context.Context, user string, owner string, ownerType string) (bool, *github.Client, error) {
+func (s *GitHubService) getClientAndMembership(ctx context.Context, user string, owner string, ownerType string) (bool, *github.Client, error) {
 	var (
 		isMember bool
 		client   *github.Client
@@ -221,7 +280,7 @@ func (s *GithubService) getClientAndMembership(ctx context.Context, user string,
 	return isMember, client, nil
 }
 
-func (s *GithubService) getUserClient(ctx context.Context, user string) (*github.Client, error) {
+func (s *GitHubService) getUserClient(ctx context.Context, user string) (*github.Client, error) {
 	installation, _, err := s.client.Apps.FindUserInstallation(ctx, user)
 	if err != nil {
 		return nil, fmt.Errorf("find user installation: %w", err)
@@ -232,7 +291,7 @@ func (s *GithubService) getUserClient(ctx context.Context, user string) (*github
 	return s.getClient(ctx, *installation.ID)
 }
 
-func (s *GithubService) getOrganizationClient(ctx context.Context, org string) (*github.Client, error) {
+func (s *GitHubService) getOrganizationClient(ctx context.Context, org string) (*github.Client, error) {
 	installation, _, err := s.client.Apps.FindOrganizationInstallation(ctx, org)
 	if err != nil {
 		return nil, fmt.Errorf("find organization installation: %w", err)
@@ -243,7 +302,7 @@ func (s *GithubService) getOrganizationClient(ctx context.Context, org string) (
 	return s.getClient(ctx, *installation.ID)
 
 }
-func (s *GithubService) getClient(ctx context.Context, installationId int64) (*github.Client, error) {
+func (s *GitHubService) getClient(ctx context.Context, installationId int64) (*github.Client, error) {
 	token, _, err := s.client.Apps.CreateInstallationToken(ctx, installationId, &github.InstallationTokenOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("create installation token: %w", err)

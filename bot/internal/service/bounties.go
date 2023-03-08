@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
+	"github.com/deed-labs/gittips/bot/internal/parser"
 	"github.com/deed-labs/gittips/bot/internal/repository"
-	"github.com/deed-labs/gittips/bot/pkg/parser"
 	"github.com/xssnick/tonutils-go/tlb"
 )
 

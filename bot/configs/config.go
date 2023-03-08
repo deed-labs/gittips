@@ -10,11 +10,11 @@ type Config struct {
 	ServerPort  int    `env:"SERVER_PORT"`
 	PostgresDSN string `env:"POSTGRES_DSN"`
 
-	Github Github
+	GitHub GitHub
 	TON    TON
 }
 
-type Github struct {
+type GitHub struct {
 	AppID         int64  `env:"GITHUB_APP_ID"`
 	PkPath        string `env:"GITHUB_APP_PK_PATH"`
 	WebhookSecret string `env:"GITHUB_WEBHOOK_SECRET"`

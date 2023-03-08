@@ -58,10 +58,10 @@ func TestParseBody(t *testing.T) {
 			},
 		},
 		{
-			text: `;; gt pay
-				;; gt set reward 10,0`,
+			text: `;; pay @johndoe 500
+				;; set reward 10,0`,
 			res: Result{
-				Commands: []string{"pay", "set reward 10,0"},
+				Commands: []string{"pay @johndoe 500", "set reward 10,0"},
 			},
 		},
 		{

@@ -79,3 +79,14 @@ func (s *bountiesStorage) Delete(ctx context.Context, id int64) error {
 
 	return nil
 }
+
+func (s *bountiesStorage) SetReward(ctx context.Context, bountyId int64, value *big.Int) error {
+	query := `UPDATE bounties SET reward = $1 WHERE gh_id = $2`
+
+	_, err := s.db.ExecContext(ctx, query, value.String(), bountyId)
+	if err != nil {
+		return fmt.Errorf("exec: %w", err)
+	}
+
+	return nil
+}

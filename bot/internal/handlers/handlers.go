@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/deed-labs/gittips/bot/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"net/http"
-
 	ghHooks "github.com/go-playground/webhooks/v6/github"
 	"go.uber.org/zap"
 )
@@ -44,7 +44,7 @@ func New(services *service.Services, whSecret string, logger *zap.SugaredLogger)
 	r := chi.NewRouter()
 	r.Use(middleware.DefaultLogger)
 	r.Post("/setup", h.handleSetup)
-	r.Post("/github", h.handleGithubWebhook)
+	r.Post("/github", h.handleGitHubWebhook)
 	r.Get("/api/bounties", h.handleGetBounties)
 
 	h.http = r
@@ -56,7 +56,7 @@ func (h *Handlers) HTTP() http.Handler {
 	return h.http
 }
 
-func (h *Handlers) handleGithubWebhook(w http.ResponseWriter, r *http.Request) {
+func (h *Handlers) handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 	payload, err := h.hook.Parse(r, githubEvents...)
 	if err != nil {
 		if errors.Is(err, ghHooks.ErrEventNotFound) {
@@ -77,17 +77,17 @@ func (h *Handlers) handleGithubWebhook(w http.ResponseWriter, r *http.Request) {
 
 	switch p := payload.(type) {
 	case ghHooks.InstallationPayload:
-		err = h.services.Github.ProcessOrganizationInstallation(ctx, p)
+		err = h.services.GitHub.ProcessOrganizationInstallation(ctx, p)
 	case ghHooks.InstallationRepositoriesPayload:
-		err = h.services.Github.ProcessRepositoriesInstallation(ctx, p)
+		err = h.services.GitHub.ProcessRepositoriesInstallation(ctx, p)
 	case ghHooks.IssuesPayload:
-		err = h.services.Github.ProcessIssueEvent(ctx, p)
+		err = h.services.GitHub.ProcessIssueEvent(ctx, p)
 	case ghHooks.IssueCommentPayload:
-		err = h.services.Github.ProcessIssueComment(ctx, p)
+		err = h.services.GitHub.ProcessIssueComment(ctx, p)
 	case ghHooks.PullRequestPayload:
-		err = h.services.Github.ProcessNewPR(ctx, p)
+		err = h.services.GitHub.ProcessNewPR(ctx, p)
 	case ghHooks.PullRequestReviewCommentPayload:
-		err = h.services.Github.ProcessPRComment(ctx, p)
+		err = h.services.GitHub.ProcessPRComment(ctx, p)
 	default:
 		h.logger.Warn("unknown webhook handled")
 
@@ -141,7 +141,7 @@ func (h *Handlers) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.services.Github.ProcessInstallationSetup(r.Context(), req.InstallationID, req.WalletAddress); err != nil {
+	if err := h.services.GitHub.ProcessInstallationSetup(r.Context(), req.InstallationID, req.WalletAddress); err != nil {
 		h.logger.Error(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
