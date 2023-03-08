@@ -1,6 +1,7 @@
 <script lang="ts">
 	import GittipsLogo from '$lib/images/gittips_logo.png';
 	import TONDiamondWhiteLogo from '$lib/images/ton_diamond_white.png';
+	import TONDiamondBlueLogo from '$lib/images/ton_diamond_blue.png';
 	import * as QROptions from './qr.json';
 
 	import QRCodeStyling from 'qr-code-styling';
@@ -49,9 +50,9 @@
 	export { classProps as class };
 </script>
 
-<div class={'navbar bg-base-100 ' + classProps}>
+<div class={'navbar max-w-screen-2xl m-auto bg-base-100 py-5 ' + classProps}>
 	<div class="flex-1">
-		<a class="btn btn-ghost normal-case text-xl" href="/"
+		<a class="btn btn-ghost normal-case text-xl text-white" href="/"
 			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
 		>
 		<div class="text-sm breadcrumbs text-info mx-4">
@@ -85,7 +86,7 @@
 				>
 			{:else}
 				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4 rounded-full"
-					>{shortAccountString(10, 5, $address ?? '')}</label
+					><img class="mr-2" src={TONDiamondBlueLogo} alt="ton logo" width={18} />{shortAccountString(10, 5, $address ?? '')}</label
 				>
 			{/if}
 		</div>
