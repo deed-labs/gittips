@@ -3,6 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/deed-labs/gittips/bot/configs"
 	"github.com/deed-labs/gittips/bot/internal/handlers"
@@ -12,10 +17,6 @@ import (
 	"github.com/deed-labs/gittips/bot/internal/ton"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
-	"log"
-	"net/http"
-	"os"
-	"os/signal"
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 		sugar.Fatal(err)
 	}
 
-	ghClient, err := setupGithubClient(conf.Github)
+	ghClient, err := setupGitHubClient(conf.GitHub)
 	if err != nil {
 		err = fmt.Errorf("setup github client: %w", err)
 		sugar.Fatal(err)
@@ -60,11 +61,11 @@ func main() {
 
 	svc := service.New(&service.Deps{
 		TON:          ton,
-		GithubClient: ghClient,
+		GitHubClient: ghClient,
 		Repository:   repo,
 	})
 
-	handler, err := handlers.New(svc, conf.Github.WebhookSecret, sugar)
+	handler, err := handlers.New(svc, conf.GitHub.WebhookSecret, sugar)
 	if err != nil {
 		sugar.Fatal(err)
 	}
@@ -97,7 +98,7 @@ func setupTON(ctx context.Context, config configs.TON) (*ton.TON, error) {
 	return &ton.TON{}, nil
 }
 
-func setupGithubClient(config configs.Github) (*http.Client, error) {
+func setupGitHubClient(config configs.GitHub) (*http.Client, error) {
 	itr, err := ghinstallation.NewAppsTransportKeyFromFile(http.DefaultTransport, config.AppID, config.PkPath)
 	if err != nil {
 		return nil, fmt.Errorf("create transport: %w", err)

@@ -2,12 +2,12 @@ package service
 
 import (
 	"context"
-	ghHooks "github.com/go-playground/webhooks/v6/github"
 	"net/http"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
 	"github.com/deed-labs/gittips/bot/internal/repository"
 	"github.com/deed-labs/gittips/bot/internal/ton"
+	ghHooks "github.com/go-playground/webhooks/v6/github"
 )
 
 type Owners interface {
@@ -23,12 +23,12 @@ type Bounties interface {
 }
 
 type Commands interface {
-	Process(ctx context.Context, ownerId int64, commands []string) error
+	Parse(command string) interface{}
 }
 
-// Github is service for processing github events and interacting with github API.
+// GitHub is service for processing github events and interacting with github API.
 // TODO: replace third-party types with our own models?
-type Github interface {
+type GitHub interface {
 	ProcessOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error
 	ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error
 	ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error
@@ -42,12 +42,12 @@ type Services struct {
 	Owners   Owners
 	Bounties Bounties
 	Commands Commands
-	Github   Github
+	GitHub   GitHub
 }
 
 type Deps struct {
 	TON          *ton.TON
-	GithubClient *http.Client
+	GitHubClient *http.Client
 	Repository   repository.Repository
 }
 
@@ -55,12 +55,12 @@ func New(deps *Deps) *Services {
 	ownersSvc := NewOwnersService(deps.Repository)
 	bountiesSvc := NewBountiesService(ownersSvc, deps.Repository)
 	commandsSvc := NewCommandsService(deps.TON, deps.Repository)
-	githubSvc := NewGithubService(deps.GithubClient, ownersSvc, bountiesSvc)
+	githubSvc := NewGitHubService(deps.GitHubClient, ownersSvc, bountiesSvc, commandsSvc)
 
 	return &Services{
 		Owners:   ownersSvc,
 		Bounties: bountiesSvc,
 		Commands: commandsSvc,
-		Github:   githubSvc,
+		GitHub:   githubSvc,
 	}
 }

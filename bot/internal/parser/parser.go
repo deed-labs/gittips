@@ -7,11 +7,10 @@ import (
 )
 
 // Result stores parsed values.
-// TODO: pass result struct as a pointer to the Parse to make parser more flexible.
 type Result struct {
-	Commands      []string `set:"gt"`
-	WalletAddress string   `set:"wallet,address"`
-	Reward        string   `set:"reward"`
+	Commands      []string
+	WalletAddress string `set:"wallet,address"`
+	Reward        string `set:"reward"`
 }
 
 var resultType = reflect.TypeOf(Result{})
@@ -37,6 +36,7 @@ func Parse(body string) Result {
 		action := strings.ToLower(ss[0])
 		value := strings.Join(ss[1:], " ")
 
+		isSet := false
 	SETTER:
 		for i := 0; i < resultType.NumField(); i++ {
 			field := resultType.Field(i)
@@ -55,11 +55,21 @@ func Parse(body string) Result {
 					case string:
 						fieldValue.SetString(value)
 					}
+					isSet = true
 
 					break SETTER
 				}
 			}
+
 		}
+
+		if !isSet {
+			// If line is not the setter then assume that line is a command.
+			cmd := strings.Join(ss, " ")
+			commandsValue := resultValue.FieldByName("Commands")
+			commandsValue.Set(reflect.Append(commandsValue, reflect.ValueOf(cmd)))
+		}
+
 	}
 
 	return resultValue.Interface().(Result)

@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
 	"github.com/deed-labs/gittips/bot/internal/repository"
 	"github.com/deed-labs/gittips/bot/internal/ton"
-	"strings"
+	"github.com/xssnick/tonutils-go/tlb"
 )
 
 type CommandsService struct {
@@ -19,31 +22,88 @@ func NewCommandsService(ton *ton.TON, repository repository.Repository) *Command
 	}
 }
 
-func (s *CommandsService) Process(ctx context.Context, ownerId int64, commands []string) error {
-	for _, v := range commands {
-		cmd := strings.Fields(v)
-		if len(cmd) == 0 {
-			// invalid command
-			continue
+func (s *CommandsService) Parse(command string) interface{} {
+	cmd := strings.Fields(command)
+	if len(cmd) == 0 {
+		// invalid command
+		return nil
+	}
+
+	switch cmd[0] {
+	case "pay":
+		return &SendPaymentCommand{
+			svc:   s,
+			To:    strings.TrimPrefix(cmd[1], "@"),
+			Value: cmd[2],
+		}
+	case "set":
+		if len(cmd) < 3 {
+			return nil
 		}
 
-		var err error
-		switch cmd[0] {
-		case "pay":
-			err = s.sendPayout(ctx, ownerId)
+		switch strings.ToLower(cmd[1]) {
+		case "wallet":
+			return &SetWalletCommand{
+				svc:           s,
+				WalletAddress: cmd[2],
+			}
+		case "reward":
+			return &SetRewardCommand{
+				svc:         s,
+				RewardValue: cmd[2],
+			}
 		default:
-			// unknown command
-			continue
+			return nil
 		}
-		if err != nil {
-			return err
-		}
+	default:
+		// unknown command
+		return nil
+	}
+}
+
+type SendPaymentCommand struct {
+	svc   *CommandsService
+	To    string
+	Value string
+}
+
+func (c *SendPaymentCommand) Run(ctx context.Context, toOwnerId int64, value string) error {
+	owner, err := c.svc.repository.Owners().Get(ctx, toOwnerId)
+	if err != nil {
+		return fmt.Errorf("get owner: %w", err)
+	}
+
+	tonValue, err := tlb.FromTON(value)
+	if err != nil {
+		return fmt.Errorf("parse value: %w", err)
+	}
+
+	if err := c.svc.ton.SendPayout(ctx, owner.WalletAddress, tonValue.NanoTON()); err != nil {
+		return fmt.Errorf("send payout: %w", err)
 	}
 
 	return nil
 }
 
-func (s *CommandsService) sendPayout(ctx context.Context, ownerId int64) error {
-	// TODO
-	return nil
+type SetWalletCommand struct {
+	svc           *CommandsService
+	WalletAddress string
+}
+
+func (c *SetWalletCommand) Run(ctx context.Context, ownerId int64, address string) error {
+	return c.svc.repository.Owners().SetWalletAddress(ctx, ownerId, address)
+}
+
+type SetRewardCommand struct {
+	svc         *CommandsService
+	RewardValue string
+}
+
+func (c *SetRewardCommand) Run(ctx context.Context, bountyId int64, newReward string) error {
+	tonValue, err := tlb.FromTON(newReward)
+	if err != nil {
+		return fmt.Errorf("parse value: %w", err)
+	}
+
+	return c.svc.repository.Bounties().SetReward(ctx, bountyId, tonValue.NanoTON())
 }

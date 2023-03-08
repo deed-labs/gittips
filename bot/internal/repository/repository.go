@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"math/big"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
 )
@@ -23,6 +24,8 @@ type BountiesRepository interface {
 	GetAll(ctx context.Context) ([]*entity.Bounty, error)
 	Save(ctx context.Context, bounty *entity.Bounty) error
 	Delete(ctx context.Context, id int64) error
+
+	SetReward(ctx context.Context, bountyId int64, value *big.Int) error
 }
 
 var ErrNotFound = errors.New("not found")
