@@ -1,4 +1,4 @@
-<div class="flex flex-col justify-between bg-base-100">
+<div class="flex flex-col min-h-screen justify-between bg-base-100">
 	<slot />
 
 	<footer class="footer footer-center p-5 gap-5 text-white">

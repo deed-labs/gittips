@@ -13,7 +13,7 @@
 	onMount(() => (ready = true));
 
 	// array for storing blocks animation statuses
-	let isInView: boolean[] = new Array(4);
+	let isInView: boolean[] = new Array(6);
 </script>
 
 <Header class="bg-base-100"/>
@@ -134,8 +134,14 @@
 	</div>
 </div>
 
-<div class="py-12">
-	<div class="text-center my-12">
+<div class="py-24 text-center"
+	use:inview={{ unobserveOnEnter: true, rootMargin: '-20%' }}
+	on:change={({ detail }) => {
+		isInView[4] = detail.inView;
+	}}
+>
+	{#if isInView[4]}
+	<div in:fade={{ duration: 1500 }}>
 		<h1 class="text-white text-4xl">Empower your developer community</h1>
 		<a
 			class="btn btn-wide btn-primary text-white font-bold rounded-full mt-12"
@@ -144,15 +150,23 @@
 			href="https://deed-labs.gitbook.io/gittips/">Try it out</a
 		>
 	</div>
+	{/if}
 </div>
 
-<div class="flex items-center justify-center my-12">
-	<div class="card bg-gray-700 w-full md:w-2/3 text-center p-12">
-		<h1 class="text-white text-4xl">Roadmap 2023</h1>
-		<ul class="steps steps-vertical md:steps-horizontal mt-12 text-white">
-			<li data-content="Q1" class="step step-primary">Launch</li>
-			<li data-content="Q1" class="step">NFT Rewards Support</li>
-			<li data-content="Q2" class="step">Deeper GitHub integration</li>
-		  </ul>
-	</div>
+<div class="flex items-center justify-center max-w-screen-2xl w-full h-96 m-auto py-12"
+	use:inview={{ unobserveOnEnter: true, rootMargin: '-20%' }}
+	on:change={({ detail }) => {
+		isInView[5] = detail.inView;
+	}}
+>
+	{#if isInView[5]}
+		<div class="card bg-gray-700 w-full md:w-2/3 text-center p-12" in:fade={{ duration: 1500 }}>
+			<h1 class="text-white text-4xl">Roadmap 2023</h1>
+			<ul class="steps steps-vertical md:steps-horizontal mt-12 text-white">
+				<li data-content="Q1" class="step step-primary">Launch</li>
+				<li data-content="Q1" class="step">NFT Rewards Support</li>
+				<li data-content="Q2" class="step">Deeper GitHub integration</li>
+			</ul>
+		</div>
+	{/if}
 </div>
