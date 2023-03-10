@@ -74,7 +74,7 @@
 		<div>
 			<label
 				for="install-modal"
-				class="btn btn-github mr-4 text-white rounded-full capitalize">
+				class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize">
 				<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
 			</label>
 		</div>
@@ -138,9 +138,9 @@
 		for=""
 	>
 		<h3 class="text-lg font-bold">Connect TON</h3>
-		<p class="text-neutral text-sm w-56">Scan the QR code with your phone's camera or Tonkeeper.</p>
+		<p class="text-gray-400 text-sm w-56">Scan the QR code with your phone's camera or Tonkeeper.</p>
 		<div id="qr-code" />
-		<p class="text-neutral text-sm w-56">
+		<p class="text-gray-400 text-sm w-56">
 			We do not store your wallet credentials, so your TON is safe.
 		</p>
 	</label>
