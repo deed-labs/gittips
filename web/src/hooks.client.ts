@@ -1,6 +1,9 @@
 import { TON } from './lib/stores';
-import { TonKeeper } from './lib/pkg/wallet/ton';
+import { MyTonWallet, OpenMask, TonKeeper, TonSafe } from './lib/pkg/wallet/ton';
 
-TON.init({
-	TonKeeper: new TonKeeper()
+await TON.init({
+	TonKeeper: new TonKeeper(),
+	OpenMask: new OpenMask(),
+	MyTonWallet: new MyTonWallet(),
+	TonSafe: new TonSafe()
 });

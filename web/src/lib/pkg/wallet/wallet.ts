@@ -23,6 +23,15 @@ export interface IWallet {
 	 */
 	address: string;
 
+	injected: boolean;
+	embedded: boolean;
+
+	/**
+	 * Wallet constructor finalizer.
+	 * It executes all asynchronous instructions necessary for the wallet to work properly.
+	 */
+	ready: Promise<void>;
+
 	/**
 	 * Returns link for connection through external wallet.
 	 * Use it for generating QR code or some other way to connect.
@@ -32,4 +41,8 @@ export interface IWallet {
 	 * @returns {string} link
 	 */
 	connectExternal(cb: (address: string) => void): Promise<string>;
+
+	connectInjected(cb: (address: string) => void): Promise<void>;
+
+	disconnect(): Promise<void>;
 }
