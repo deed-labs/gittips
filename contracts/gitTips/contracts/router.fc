@@ -6,6 +6,7 @@
 const int fee::budget_deploy = 200000000;   ;; 0.2 TON
 
 () save_data(int fee_rate, slice admin_addr, cell budget_code) impure inline {
+    ;; TODO: add fee address 
     set_data(begin_cell()
         .store_uint(fee_rate, 8)    ;; fee_rate:uint8
         .store_slice(admin_addr)    ;; admin_addr:MsgAddress
@@ -16,6 +17,7 @@ const int fee::budget_deploy = 200000000;   ;; 0.2 TON
 (int, slice, cell) load_data() inline {
     slice ds = get_data().begin_parse();
 
+    ;; TODO: add fee address 
     return (
         ds~load_uint(8),    ;; fee_rate:uint8
         ds~load_msg_addr(), ;; admin_address:MsgAddress
@@ -112,10 +114,14 @@ slice add_budget(int amount, slice owner_address) impure {
         slice receiver_address = in_msg_body~load_msg_addr();   ;; receiver_address:MsgAddress
         int amount = in_msg_body~load_coins();                  ;; amount:uint64
 
+        ;; TODO: calculate payment and fee amounts
+
         cell master_msg = begin_cell()
                     .store_slice(sender_address)
                     .store_slice(receiver_address)
-                    .store_coins(amount)
+                    .store_slice(fee_address)
+                    .store_coins(payout_amount)
+                    .store_coins(fee_amount)
                 .end_cell();
 
         cell msg = begin_cell()
@@ -145,13 +151,13 @@ slice add_budget(int amount, slice owner_address) impure {
         return();
     }
 
-    ;; TODO
-    if (op == op::get_budget) {
-        return();
-    }
+}
 
-    ;; TODO
-    if (op == op::get_fee) {
-        return();
-    }
+;; TODO
+slice get_budget_address(slice owner_addr) method_id {
+
+}
+
+int get_fee_rate() method_id {
+    
 }
