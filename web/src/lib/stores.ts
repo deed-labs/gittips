@@ -10,17 +10,21 @@ type WalletInfo = {
 	connected: boolean;
 };
 
-type WalletStore = Readable<WalletInfo> & {
+export type WalletStore = Readable<WalletInfo> & {
 	connectExternal: (onConnected?: () => void) => Promise<string>;
-	disconnect: () => void;
+	connectInjected: (onConnected?: () => void) => Promise<void>;
+	disconnect: () => Promise<void>;
 	available: boolean;
+
+	injected: boolean;
+	embedded: boolean;
 };
 
 type WalletStores = {
 	[name: string]: WalletStore;
 };
 
-type Network = {
+export type Network = {
 	connected: Readable<boolean>;
 	address: Readable<string>;
 	wallets: WalletStores;
@@ -29,7 +33,7 @@ type Network = {
 const makeWalletStore = (wallet: IWallet): WalletStore => {
 	const { subscribe, set } = writable({} as WalletInfo);
 
-	const connectExternal = async (onConnected?: () => void) => {
+	const connectExternal = async (onConnected?: () => void): Promise<string> => {
 		let link = await wallet.connectExternal((address: string) => {
 			set({
 				address,
@@ -42,7 +46,19 @@ const makeWalletStore = (wallet: IWallet): WalletStore => {
 		return link;
 	};
 
-	const disconnect = () => {
+	const connectInjected = async (onConnected?: () => void): Promise<void> => {
+		await wallet.connectInjected((address: string) => {
+			set({
+				address,
+				connected: true
+			});
+
+			if (onConnected) onConnected();
+		});
+	};
+
+	const disconnect = async () => {
+		await wallet.disconnect();
 		set({
 			address: '',
 			connected: false
@@ -52,8 +68,11 @@ const makeWalletStore = (wallet: IWallet): WalletStore => {
 	return {
 		subscribe,
 		connectExternal,
+		connectInjected,
 		disconnect,
-		available: wallet.available
+		available: wallet.available,
+		injected: wallet.injected,
+		embedded: wallet.embedded
 	};
 };
 
@@ -63,10 +82,11 @@ const makeNetworkStore = () => {
 
 	return {
 		subscribe,
-		init(wallets: Wallets) {
+		async init(wallets: Wallets) {
 			let walletStores: { [name: string]: WalletStore } = {};
-			for (let [key, value] of Object.entries(wallets)) {
-				walletStores[key] = makeWalletStore(value);
+			for (let [name, wallet] of Object.entries(wallets)) {
+				await wallet.ready;
+				walletStores[name] = makeWalletStore(wallet);
 			}
 
 			let connected = derived(Object.values(walletStores), (wallets) => {
@@ -75,15 +95,17 @@ const makeNetworkStore = () => {
 
 			let address = derived(Object.values(walletStores), (wallets) => {
 				let addresses = wallets.map((wallet) => wallet.address);
-				return addresses.filter((address) => address !== '')[0];
+				let address = addresses.filter((address) => address && address !== '')[0];
+
+				return address;
 			});
 
 			set({ connected, address, wallets: walletStores });
 		},
-		disconnect() {
+		async disconnect() {
 			let network = get(this);
 			for (let wallet of Object.values(network.wallets)) {
-				wallet.disconnect();
+				await wallet.disconnect();
 			}
 		}
 	};

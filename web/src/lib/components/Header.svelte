@@ -8,7 +8,8 @@
 
 	import GitHubLogo from '$lib/images/github_logo.png';
 	import { shortAccountString, storeAddressToLocalStorage } from '$lib/utils';
-	import { TON } from '$lib/stores';
+	import { TON, type WalletStore } from '$lib/stores';
+	import { fade } from 'svelte/transition';
 
 	const { connected, address, wallets } = $TON;
 
@@ -20,7 +21,13 @@
 	};
 	export let breadcrumbs: Breadcrumb[] = [];
 
-	let isDisconnectingModalOpen = false;
+	let errorMessage = '';
+	const showError = (msg: string) => {
+		errorMessage = msg;
+		setTimeout(() => {
+			errorMessage = '';
+		}, 2000);
+	};
 
 	const onConnected = () => {
 		(document.getElementById('qr-modal') as HTMLInputElement).checked = false;
@@ -28,20 +35,30 @@
 		storeAddressToLocalStorage($address);
 	};
 
-	const connect = async () => {
-		let connectionLink = await wallets.TonKeeper.connectExternal(onConnected);
+	const connect = async (wallet: WalletStore) => {
+		if (!wallet.available) {
+			showError('Wallet is not installed.');
+			return;
+		}
 
-		qrCode.update({
-			data: connectionLink,
-			image: GittipsLogo
-		});
-		qrCode.append(document.getElementById('qr-code')!);
+		if (wallet.injected) {
+			await wallet.connectInjected(onConnected);
+		} else {
+			let connectionLink = await wallet.connectExternal(onConnected);
 
-		(document.getElementById('qr-modal') as HTMLInputElement).checked = true;
+			qrCode.update({
+				data: connectionLink,
+				image: GittipsLogo
+			});
+			qrCode.append(document.getElementById('qr-code')!);
+
+			(document.getElementById('qr-modal') as HTMLInputElement).checked = true;
+		}
 	};
 
-	const disconnect = () => {
-		TON.disconnect();
+	let isDisconnectingModalOpen = false;
+	const disconnect = async () => {
+		await TON.disconnect();
 		isDisconnectingModalOpen = false;
 	};
 
@@ -71,27 +88,63 @@
 	</div>
 	<div class="flex-none">
 		{#if $connected}
-		<div>
-			<label
-				for="install-modal"
-				class="btn btn-github mr-4 text-white rounded-full capitalize">
-				<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
-			</label>
-		</div>
+			<div>
+				<label
+					for="install-modal"
+					class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
+				>
+					<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
+				</label>
+			</div>
 		{/if}
 		<div>
 			{#if !$connected}
-				<button class="btn btn-primary mr-4 text-white rounded-full capitalize" on:click={connect}
-					><img class="mr-2" src={TONDiamondWhiteLogo} alt="ton logo" width={18} />Connect TON</button
-				>
+				<div class="dropdown dropdown-bottom dropdown-end">
+					<label tabindex="0" class="btn btn-primary mr-4 text-white rounded-full capitalize"
+						><img class="mr-2" src={TONDiamondWhiteLogo} alt="ton logo" width={18} />Connect TON</label
+					>
+					<ul
+						tabindex="0"
+						class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52 border"
+					>
+						{#each Object.entries(wallets) as [name, wallet]}
+							<li>
+								<!-- svelte-ignore a11y-click-events-have-key-events -->
+								<label
+									for=""
+									on:click={() => {
+										connect(wallet);
+									}}
+								>
+									{name}
+								</label>
+							</li>
+						{/each}
+					</ul>
+				</div>
 			{:else}
 				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4 rounded-full"
-					><img class="mr-2" src={TONDiamondBlueLogo} alt="ton logo" width={18} />{shortAccountString(10, 5, $address ?? '')}</label
+					><img
+						class="mr-2"
+						src={TONDiamondBlueLogo}
+						alt="ton logo"
+						width={18}
+					/>{shortAccountString(10, 5, $address ?? '')}</label
 				>
 			{/if}
 		</div>
 	</div>
 </div>
+
+{#if errorMessage !== ''}
+	<div class="toast toast-top toast-center z-20" out:fade>
+		<div class="alert alert-error w-96">
+			<div>
+				<span>{errorMessage}</span>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <input
 	type="checkbox"
@@ -111,20 +164,21 @@
 
 <!--- Installation modal -->
 
-<input
-	type="checkbox"
-	id="install-modal"
-	class="modal-toggle"
-/>
+<input type="checkbox" id="install-modal" class="modal-toggle" />
 <div class="modal modal-bottom sm:modal-middle">
 	<div class="modal-box">
 		<h3 class="font-bold text-lg">Install app</h3>
 		<label for="install-modal" class="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-		<p class="py-4">Your GitHub organization will be linked to {shortAccountString(10, 5, $address ?? '')} address</p>
+		<p class="py-4">
+			Your GitHub organization will be linked to {shortAccountString(10, 5, $address ?? '')} address
+		</p>
 		<div class="modal-action">
-			<a href="https://github.com/apps/gittips-bot"
-			target="_blank"
-			rel="noreferrer" class="btn btn-sm" >Install</a>
+			<a
+				href="https://github.com/apps/gittips-bot"
+				target="_blank"
+				rel="noreferrer"
+				class="btn btn-sm">Install</a
+			>
 		</div>
 	</div>
 </div>
@@ -138,9 +192,9 @@
 		for=""
 	>
 		<h3 class="text-lg font-bold">Connect TON</h3>
-		<p class="text-neutral text-sm w-56">Scan the QR code with your phone's camera or Tonkeeper.</p>
+		<p class="text-gray-400 text-sm w-56">Scan the QR code with your phone's camera or wallet.</p>
 		<div id="qr-code" />
-		<p class="text-neutral text-sm w-56">
+		<p class="text-gray-400 text-sm w-56">
 			We do not store your wallet credentials, so your TON is safe.
 		</p>
 	</label>
