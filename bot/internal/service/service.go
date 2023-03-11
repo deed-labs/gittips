@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
@@ -64,3 +65,8 @@ func New(deps *Deps) *Services {
 		GitHub:   githubSvc,
 	}
 }
+
+var (
+	ErrInvalidValue = errors.New("invalid value")
+	ErrUserNotFound = errors.New("user not found")
+)

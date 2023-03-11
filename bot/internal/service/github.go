@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -157,12 +158,54 @@ func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 		case *SendPaymentCommand:
 			toOwner, _, err := client.Users.Get(ctx, c.To)
 			if err != nil {
-				// Create comment with invalid username warning
-				return fmt.Errorf("get user by login: %w", err)
+				reply := fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.InvalidUserInput)
+				comment := &github.IssueComment{
+					Body: &reply,
+				}
+
+				_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+					payload.Repository.Name, int(payload.Issue.Number), comment)
+				if err != nil {
+					return fmt.Errorf("create comment: %w", err)
+				}
+
+				return nil
 			}
 			if err := c.Run(ctx, *toOwner.ID, c.Value); err != nil {
-				return fmt.Errorf("run command: %w", err)
+				var reply string
+				switch {
+				case errors.Is(err, ErrInvalidValue):
+					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.InvalidValueInput)
+				case errors.Is(err, ErrUserNotFound):
+					msg := fmt.Sprintf(messages.UserHasNoWalletTmpl, c.To)
+					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, msg)
+				default:
+					return fmt.Errorf("run command: %w", err)
+				}
+
+				comment := &github.IssueComment{
+					Body: &reply,
+				}
+
+				_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+					payload.Repository.Name, int(payload.Issue.Number), comment)
+				if err != nil {
+					return fmt.Errorf("create comment: %w", err)
+				}
 			}
+
+			msg := fmt.Sprintf(messages.PaymentSentTmpl, c.To)
+			comment := &github.IssueComment{
+				Body: &msg,
+			}
+
+			_, _, err = client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+				payload.Repository.Name, int(payload.Issue.Number), comment)
+			if err != nil {
+				return fmt.Errorf("create comment: %w", err)
+			}
+
+			return nil
 		case *SetWalletCommand:
 			if err := c.Run(ctx, payload.Sender.ID, c.WalletAddress); err != nil {
 				return fmt.Errorf("run command: %w", err)
@@ -170,6 +213,16 @@ func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 		case *SetRewardCommand:
 			if err := c.Run(ctx, payload.Issue.ID, c.RewardValue); err != nil {
 				return fmt.Errorf("run command: %w", err)
+			}
+		case *CloseCommand:
+			newState := "closed"
+			issue := &github.IssueRequest{
+				State: &newState,
+			}
+			_, _, err := client.Issues.Edit(ctx, payload.Repository.Owner.Login,
+				payload.Repository.Name, int(payload.Issue.Number), issue)
+			if err != nil {
+				return fmt.Errorf("edit issue: %w", err)
 			}
 		default:
 			continue
@@ -219,11 +272,52 @@ func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 		case *SendPaymentCommand:
 			toOwner, _, err := client.Users.Get(ctx, c.To)
 			if err != nil {
-				// Create comment with invalid username warning
-				return fmt.Errorf("get user by login: %w", err)
+				reply := fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.InvalidUserInput)
+				comment := &github.IssueComment{
+					Body: &reply,
+				}
+
+				_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+					payload.Repository.Name, int(payload.PullRequest.Number), comment)
+				if err != nil {
+					return fmt.Errorf("create comment: %w", err)
+				}
+
+				return nil
 			}
+
 			if err := c.Run(ctx, *toOwner.ID, c.Value); err != nil {
-				return fmt.Errorf("run command: %w", err)
+				var reply string
+				switch {
+				case errors.Is(err, ErrInvalidValue):
+					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.InvalidValueInput)
+				case errors.Is(err, ErrUserNotFound):
+					msg := fmt.Sprintf(messages.UserHasNoWalletTmpl, c.To)
+					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, msg)
+				default:
+					return fmt.Errorf("run command: %w", err)
+				}
+
+				comment := &github.IssueComment{
+					Body: &reply,
+				}
+
+				_, _, err := client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+					payload.Repository.Name, int(payload.PullRequest.Number), comment)
+				if err != nil {
+					return fmt.Errorf("create comment: %w", err)
+				}
+			}
+
+			msg := fmt.Sprintf(messages.PaymentSentTmpl, c.To)
+			comment := &github.IssueComment{
+				Body: &msg,
+			}
+
+			_, _, err = client.Issues.CreateComment(ctx, payload.Repository.Owner.Login,
+				payload.Repository.Name, int(payload.PullRequest.Number), comment)
+			if err != nil {
+				return fmt.Errorf("create comment: %w", err)
 			}
 		case *SetWalletCommand:
 			if err := c.Run(ctx, payload.Sender.ID, c.WalletAddress); err != nil {
@@ -232,6 +326,16 @@ func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 		case *SetRewardCommand:
 			// Not supported for pull request for now
 			continue
+		case *CloseCommand:
+			newState := "closed"
+			pr := &github.PullRequest{
+				State: &newState,
+			}
+			_, _, err := client.PullRequests.Edit(ctx, payload.Repository.Owner.Login,
+				payload.Repository.Name, int(payload.PullRequest.Number), pr)
+			if err != nil {
+				return fmt.Errorf("edit issue: %w", err)
+			}
 		default:
 			continue
 		}

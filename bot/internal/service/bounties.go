@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/deed-labs/gittips/bot/internal/entity"
@@ -35,8 +34,10 @@ func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, t
 
 	parsedReward, err := tlb.FromTON(parsedBody.Reward)
 	if err != nil {
-		return fmt.Errorf("parse reward amount: %w", err)
+		return ErrInvalidValue
 	}
+
+	// TODO: check if budget balance is sufficient for this reward
 
 	bounty := &entity.Bounty{
 		ID:      id,

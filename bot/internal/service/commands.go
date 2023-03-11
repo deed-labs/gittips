@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -55,6 +56,8 @@ func (s *CommandsService) Parse(command string) interface{} {
 		default:
 			return nil
 		}
+	case "close":
+		return &CloseCommand{}
 	default:
 		// unknown command
 		return nil
@@ -69,13 +72,15 @@ type SendPaymentCommand struct {
 
 func (c *SendPaymentCommand) Run(ctx context.Context, toOwnerId int64, value string) error {
 	owner, err := c.svc.repository.Owners().Get(ctx, toOwnerId)
-	if err != nil {
+	if err != nil && errors.Is(err, repository.ErrNotFound) {
+		return ErrUserNotFound
+	} else if err != nil {
 		return fmt.Errorf("get owner: %w", err)
 	}
 
 	tonValue, err := tlb.FromTON(value)
 	if err != nil {
-		return fmt.Errorf("parse value: %w", err)
+		return ErrInvalidValue
 	}
 
 	if err := c.svc.ton.SendPayout(ctx, owner.WalletAddress, tonValue.NanoTON()); err != nil {
@@ -102,8 +107,10 @@ type SetRewardCommand struct {
 func (c *SetRewardCommand) Run(ctx context.Context, bountyId int64, newReward string) error {
 	tonValue, err := tlb.FromTON(newReward)
 	if err != nil {
-		return fmt.Errorf("parse value: %w", err)
+		return ErrInvalidValue
 	}
 
 	return c.svc.repository.Bounties().SetReward(ctx, bountyId, tonValue.NanoTON())
 }
+
+type CloseCommand struct{}
