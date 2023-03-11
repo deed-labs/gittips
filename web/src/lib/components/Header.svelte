@@ -9,6 +9,7 @@
 	import GitHubLogo from '$lib/images/github_logo.png';
 	import { shortAccountString, storeAddressToLocalStorage } from '$lib/utils';
 	import { TON, type WalletStore } from '$lib/stores';
+	import { fade } from 'svelte/transition';
 
 	const { connected, address, wallets } = $TON;
 
@@ -20,7 +21,13 @@
 	};
 	export let breadcrumbs: Breadcrumb[] = [];
 
-	let isDisconnectingModalOpen = false;
+	let errorMessage = '';
+	const showError = (msg: string) => {
+		errorMessage = msg;
+		setTimeout(() => {
+			errorMessage = '';
+		}, 2000);
+	};
 
 	const onConnected = () => {
 		(document.getElementById('qr-modal') as HTMLInputElement).checked = false;
@@ -30,7 +37,7 @@
 
 	const connect = async (wallet: WalletStore) => {
 		if (!wallet.available) {
-			// TODO: show warning
+			showError('Wallet is not installed.');
 			return;
 		}
 
@@ -49,6 +56,7 @@
 		}
 	};
 
+	let isDisconnectingModalOpen = false;
 	const disconnect = async () => {
 		await TON.disconnect();
 		isDisconnectingModalOpen = false;
@@ -127,6 +135,16 @@
 		</div>
 	</div>
 </div>
+
+{#if errorMessage !== ''}
+	<div class="toast toast-top toast-center z-20" out:fade>
+		<div class="alert alert-error w-96">
+			<div>
+				<span>{errorMessage}</span>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <input
 	type="checkbox"

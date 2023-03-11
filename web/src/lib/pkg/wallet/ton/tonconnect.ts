@@ -58,6 +58,7 @@ export default class TonConnectWallet {
 		this.connector.onStatusChange((wallet: Wallet | null) => {
 			if (this.connector.connected && wallet) {
 				this.address = Address.parseRaw(wallet.account.address).toString();
+				this.connected = true;
 				cb(this.address);
 			}
 		}, console.error);
@@ -77,6 +78,7 @@ export default class TonConnectWallet {
 		this.connector.onStatusChange((wallet: Wallet | null) => {
 			if (this.connector.connected && wallet) {
 				this.address = Address.parseRaw(wallet.account.address).toString();
+				this.connected = true;
 				cb(this.address);
 			}
 		}, console.error);
