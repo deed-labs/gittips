@@ -77,7 +77,7 @@ const makeWalletStore = (wallet: IWallet): WalletStore => {
 };
 
 const makeNetworkStore = () => {
-	let initialValue = {} as Network;
+	let initialValue = { wallets: {} } as Network;
 	const { subscribe, set } = writable(initialValue);
 
 	return {
