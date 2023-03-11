@@ -2435,8 +2435,8 @@ html {
 .h-6 {
   height: 1.5rem;
 }
-.h-96 {
-  height: 24rem;
+.h-64 {
+  height: 16rem;
 }
 .h-full {
   height: 100%;
@@ -2517,6 +2517,9 @@ html {
 .gap-1 {
   gap: 0.25rem;
 }
+.gap-12 {
+  gap: 3rem;
+}
 .gap-2 {
   gap: 0.5rem;
 }
@@ -2571,8 +2574,8 @@ html {
 .p-2 {
   padding: 0.5rem;
 }
-.p-28 {
-  padding: 7rem;
+.p-4 {
+  padding: 1rem;
 }
 .p-5 {
   padding: 1.25rem;
@@ -2616,8 +2619,8 @@ html {
   font-size: 2.25rem;
   line-height: 2.5rem;
 }
-.text-7xl {
-  font-size: 4.5rem;
+.text-5xl {
+  font-size: 3rem;
   line-height: 1;
 }
 .text-lg {
@@ -2750,5 +2753,26 @@ html {
 
   .md\:flex-row {
     flex-direction: row;
+  }
+
+  .md\:gap-5 {
+    gap: 1.25rem;
+  }
+
+  .md\:p-0 {
+    padding: 0px;
+  }
+
+  .md\:p-12 {
+    padding: 3rem;
+  }
+
+  .md\:p-28 {
+    padding: 7rem;
+  }
+
+  .md\:text-7xl {
+    font-size: 4.5rem;
+    line-height: 1;
   }
 }
