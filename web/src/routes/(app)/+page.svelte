@@ -94,8 +94,7 @@
 				<div class="w-full md:w-1/2" in:animateFeature={{ x: -200, duration: 1000 }}>
 					<h1 class="text-4xl font-bold">Automated Bounty Creation</h1>
 					<p class="text-xl text-gray-400 mt-5">
-						We automate the process of creating bounties from issues on GitHub. <br /> Find developers
-						for tasks without breaking your usual flow.
+						We automate the process of creating bounties from issues on GitHub.
 					</p>
 					<p class="text-xl text-gray-400">
 						Just add <span class="badge badge-primary badge-outline">bounty</span> label to an issue.
@@ -132,8 +131,8 @@
 				<div class="w-full md:w-1/2" in:animateFeature={{ x: 200, duration: 1000 }}>
 					<h1 class="text-4xl font-bold">Budget Control</h1>
 					<p class="text-xl text-gray-400 mt-5">
-						Each organization and user has its own balance reserved on the smart contract. So they
-						can't accidentally spend more than planned.
+						Each organization and user has its own balance reserved on the smart contract. <br />
+						So they can't accidentally spend more than planned.
 					</p>
 				</div>
 			{/if}
@@ -198,12 +197,18 @@
 	}}
 >
 	{#if isInView[5]}
-		<div class="card bg-gray-700 w-full md:w-2/3 text-center p-12" in:fade={{ duration: 1500 }}>
+		<div class="card bg-gray-700 w-full md:w-2/3 p-12" in:fade={{ duration: 1500 }}>
 			<h1 class="text-white text-4xl">Roadmap 2023</h1>
 			<ul class="steps steps-vertical md:steps-horizontal mt-12 text-white">
-				<li data-content="Q1" class="step step-primary">Launch</li>
-				<li data-content="Q1" class="step">NFT Rewards Support</li>
-				<li data-content="Q2" class="step">Deeper GitHub integration</li>
+				<li data-content="Q1" class="step step-primary">
+					<p class="w-full text-center">Mainnet Launch</p>
+				</li>
+				<li data-content="Q1" class="step">
+					<p class="w-full text-center">NFT Rewards Support</p>
+				</li>
+				<li data-content="Q2" class="step">
+					<p class="w-full text-center">Deeper GitHub integration</p>
+				</li>
 			</ul>
 		</div>
 	{/if}
