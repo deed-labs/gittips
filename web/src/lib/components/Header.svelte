@@ -10,6 +10,7 @@
 	import { shortAccountString, storeAddressToLocalStorage } from '$lib/utils';
 	import { TON, type WalletStore } from '$lib/stores';
 	import { fade } from 'svelte/transition';
+	import { base } from '$app/paths';
 
 	const { connected, address, wallets } = $TON;
 
@@ -69,7 +70,7 @@
 
 <div class={'navbar max-w-screen-2xl m-auto bg-base-100 py-5 ' + classProps}>
 	<div class="flex-1">
-		<a class="btn btn-ghost normal-case text-xl text-white" href="/"
+		<a class="btn btn-ghost normal-case text-xl text-white" href={base + '/'}
 			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
 		>
 		<div class="text-sm breadcrumbs text-info mx-4">

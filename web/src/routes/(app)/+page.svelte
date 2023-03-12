@@ -7,6 +7,7 @@
 	import { fade, fly, type FlyParams } from 'svelte/transition';
 	import { inview } from 'svelte-inview';
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 
 	let ready = false;
 	onMount(() => (ready = true));
@@ -47,7 +48,7 @@
 					>
 					<a
 						class="btn btn-wide btn-primary text-white font-bold rounded-full capitalize"
-						href="/explore/bounties">Explore</a
+						href={base + '/explore/bounties'}>Explore</a
 					>
 				</div>
 			</div>
