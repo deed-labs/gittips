@@ -7,6 +7,11 @@
 	export let data;
 
 	// TODO: replace with real data
+	const name = 'DEED Labs';
+	const avatarLink = 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4';
+	const totalBudget = '100000000000';
+	const availableBudget = '56000000000';
+
 	data.bounties.push(
 		...[
 			{
@@ -58,22 +63,51 @@
 </script>
 
 <div>
-	<Header
-		breadcrumbs={[
-			{ name: 'explore', href: '' },
-			{ name: 'bounties', href: '' }
-		]}
-	/>
+	<Header breadcrumbs={[{ name: 'budget', href: '' }]} />
 
 	<div class="p-10 sm:w-full md:w-2/3 mx-auto">
-		<h1 class="text-4xl font-bold mb-5">Available bounties</h1>
+		<div class="flex flex-col items-center w-full mb-24">
+			<h1 class="text-4xl font-bold my-5">{name}</h1>
+
+			<div class="stats shadow border border-secondary bg-base-200">
+				<div class="stat">
+					<div class="stat-title">Total budget</div>
+					<div class="flex flex-row items-center gap-1">
+						<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
+						<p class="stat-value text-secondary ">{bigIntToFloat(totalBudget, 9, 2)}</p>
+					</div>
+				</div>
+
+				<div class="stat">
+					<div class="stat-title">Available budget</div>
+					<div class="flex flex-row items-center gap-1">
+						<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
+						<p class="stat-value text-secondary ">{bigIntToFloat(availableBudget, 9, 2)}</p>
+					</div>
+				</div>
+
+				<div class="stat">
+					<div class="stat-figure text-secondary">
+						<div class="avatar">
+							<div class="w-16 rounded-full">
+								<img src={avatarLink} alt="Org logo" />
+							</div>
+						</div>
+					</div>
+					<div class="stat-value">86%</div>
+					<div class="stat-title">Bounties done</div>
+					<div class="stat-desc text-secondary">31 tasks remaining</div>
+				</div>
+			</div>
+		</div>
+
+		<h1 class="text-4xl font-bold my-5">Bounties</h1>
 		<div class="overflow-x-auto w-full border border-secondary rounded rounded-xl">
 			<table class="table w-full">
 				<!-- head -->
 				<thead>
 					<tr>
 						<th>Title</th>
-						<th>Owner</th>
 						<th>Reward</th>
 						<th />
 					</tr>
@@ -84,22 +118,8 @@
 						<tr class="hover">
 							<td>
 								<div class="flex items-center space-x-3">
-									<div class="avatar">
-										<div class="w-10 h-10 rounded">
-											<img src={bounty.ownerAvatarUrl} alt="Avatar Tailwind CSS Component" />
-										</div>
-									</div>
-									<div>
-										<div class="font-bold">{bounty.title}</div>
-									</div>
+									<div class="font-bold">{bounty.title}</div>
 								</div>
-							</td>
-							<td>
-								<a class="link link-primary" href={bounty.ownerUrl} target="_blank" rel="noreferrer"
-									>{bounty.owner}</a
-								>
-								<br />
-								<span class="badge badge-ghost badge-sm">{bounty.ownerType}</span>
 							</td>
 							<td>
 								<div class="flex flex-row items-center gap-1">
