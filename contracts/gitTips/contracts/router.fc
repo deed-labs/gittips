@@ -5,28 +5,28 @@
 
 const int fee::budget_deploy = 200000000;   ;; 0.2 TON
 
-() save_data(int fee_rate, slice admin_addr, cell budget_code) impure inline {
-    ;; TODO: add fee address 
+() save_data(int fee_rate, slice admin_addr, slice fee_addr, cell budget_code) impure inline {
     set_data(begin_cell()
         .store_uint(fee_rate, 8)    ;; fee_rate:uint8
         .store_slice(admin_addr)    ;; admin_addr:MsgAddress
+        .store_slice(fee_addr)      ;; fee_addr:MsgAddress
         .store_ref(budget_code)     ;; budget_code:^Cell
     .end_cell());
 }
 
-(int, slice, cell) load_data() inline {
+(int, slice, slice, cell) load_data() inline {
     slice ds = get_data().begin_parse();
 
-    ;; TODO: add fee address 
     return (
         ds~load_uint(8),    ;; fee_rate:uint8
-        ds~load_msg_addr(), ;; admin_address:MsgAddress
+        ds~load_msg_addr(), ;; admin_addr:MsgAddress
+        ds~load_msg_addr(), ;; fee_addr:MsgAddress
         ds~load_ref()       ;; budget_code:^Cell
     );
 }
 
 slice add_budget(int amount, slice owner_address) impure {
-    (_, _, cell budget_code) = load_data();
+    (_, _, _, cell budget_code) = load_data();
 
     cell budget_state_init = calculate_budget_state_init(owner_address, budget_code);
     slice budget_address = calculate_address_by_state_init(budget_state_init);
@@ -81,7 +81,7 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::withdraw_budget) {
-        (_, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+        (_, _, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
 
         slice budget_address = calculate_budget_address(sender_address, budget_code);    ;; budget_address:MsgAddress
 
@@ -107,20 +107,20 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::send_payout) {
-        (_, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+        (int fee_rate, _, slice fee_addr, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
 
         slice budget_address = calculate_budget_address(sender_address, budget_code);   ;; budget_address:MsgAddress
 
         slice receiver_address = in_msg_body~load_msg_addr();   ;; receiver_address:MsgAddress
         int amount = in_msg_body~load_coins();                  ;; amount:uint64
 
-        ;; TODO: calculate payment and fee amounts
+        int fee_amount = amount / 100 * fee_rate;
 
         cell master_msg = begin_cell()
                     .store_slice(sender_address)
                     .store_slice(receiver_address)
-                    .store_slice(fee_address)
-                    .store_coins(payout_amount)
+                    .store_slice(fee_addr)
+                    .store_coins(amount)
                     .store_coins(fee_amount)
                 .end_cell();
 
@@ -139,25 +139,30 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::set_fee) {
-        (_, slice admin_addr, cell budget_code) = load_data();      ;; admin_addr:MsgAddress budget_code:^Cell
+        (_, slice admin_addr,slice fee_addr, cell budget_code) = load_data();      ;; admin_addr:MsgAddress budget_code:^Cell
         (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
 
         throw_if(error::access_denied, admin_address_hash != sender_address_hash);  ;; check admin access
 
         int fee_rate = in_msg_body~load_uint(8); ;; fee_rate:uint8
 
-        save_data(fee_rate, admin_addr ,budget_code);
+        save_data(fee_rate, admin_addr, fee_addr, budget_code);
 
         return();
     }
 
 }
 
-;; TODO
 slice get_budget_address(slice owner_addr) method_id {
+    (_, _, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
 
+    slice budget_address = calculate_budget_address(owner_addr, budget_code);   ;; budget_address:MsgAddress
+    
+    return(budget_address);
 }
 
 int get_fee_rate() method_id {
-    
+    (int fee_rate, _, _, _) = load_data(); 
+
+    return(fee_rate);
 }

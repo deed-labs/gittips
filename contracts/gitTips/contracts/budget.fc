@@ -3,14 +3,14 @@
 #include "utils/utils.fc";
 #include "op-codes.fc";
 
-() save_data(int fee_rate, slice admin_addr, slice owner_addr) impure inline {
+() save_data(slice admin_addr, slice owner_addr) impure inline {
     set_data(begin_cell()
         .store_slice(admin_addr)    ;; admin_addr:MsgAddress
         .store_slice(owner_addr)    ;; owner_addr:MsgAddress
     .end_cell());
 }
 
-(int, slice, slice) load_data() impure inline {
+(slice, slice) load_data() impure inline {
     slice ds = get_data().begin_parse();
 
     return (
@@ -19,28 +19,42 @@
     );
 }
 
-() withdraw(int amount, slice to_address, int sender_address_hash) impure {
-    (_, slice admin_addr, slice owner_addr) = load_data();
+() send_fee(int my_balance,int fee_amount, slice fee_address, int sender_address_hash) impure {
+    (slice admin_addr, slice owner_addr) = load_data();
 
     (_, int admin_address_hash) = parse_std_addr(admin_addr);
     (_, int owner_address_hash) = parse_std_addr(owner_addr);
 
-    var budget_balance = get_balance().pair_first();
+    throw_if(error::access_denied, admin_address_hash != sender_address_hash);
+
+    cell msg = begin_cell()
+                    .store_uint(0x18, 6)
+                    .store_slice(fee_address)
+                    .store_coins(fee_amount)
+                    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .end_cell();
+
+    ;; send mode - 1 to pay transfer fees separately and revert on errors.
+    send_raw_message(msg, 1);
+
+    return ();
+}
+
+() withdraw(int my_balance,int payout_amount, slice to_address, int sender_address_hash) impure {
+    (slice admin_addr, slice owner_addr) = load_data();
+
+    (_, int admin_address_hash) = parse_std_addr(admin_addr);
+    (_, int owner_address_hash) = parse_std_addr(owner_addr);
 
     throw_if(error::access_denied, admin_address_hash != sender_address_hash);
 
-    (_, int to_address_hash) = parse_std_addr(to_address);
-
     ;; budget balance must not be less than withdrawal value
-    throw_if(error::not_enough_budget_balance, amount);
-
-    ;; budget can be withdrawed only to the owner address
-    throw_if(error::access_denied, owner_address_hash != to_address_hash);
+    throw_if(error::not_enough_budget_balance, payout_amount < my_balance);
 
     cell msg = begin_cell()
                     .store_uint(0x18, 6)
                     .store_slice(to_address)
-                    .store_coins(amount)
+                    .store_coins(payout_amount)
                     .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                 .end_cell();
 
@@ -75,24 +89,29 @@
 
         int amount = in_msg_body~load_coins();
 
-        withdraw(amount, sender_address, sender_address_hash);
+        withdraw(my_balance, amount, sender_address, sender_address_hash);
     }
 
     if (op == op::send_payout) {
         ;; TODO: load fee address and fee amount
 
-        slice reciever_address = cs~load_msg_addr();                      ;; sender:MsgAddress
-        (_, int reciever_address_hash) = parse_std_addr(reciever_address);  ;; sender_addr_hash:uint256
-
-        slice sender_address = cs~load_msg_addr();                      ;; sender:MsgAddress
+        slice sender_address = cs~load_msg_addr();                      ;; sender_addr:MsgAddress
         (_, int sender_address_hash) = parse_std_addr(sender_address);  ;; sender_addr_hash:uint256
 
-        slice to_address = in_msg_body~load_msg_addr();
+        slice reciever_address = cs~load_msg_addr();                      ;; reciever_addr:MsgAddress
+        (_, int reciever_address_hash) = parse_std_addr(reciever_address);  ;; reciever_addr_hash:uint256
+
+        ;; slice to_address = in_msg_body~load_msg_addr();
+        slice fee_address = cs~load_msg_addr();                      ;; fee_addr:MsgAddress
+
         int amount = in_msg_body~load_coins();
+        int fee_amount = in_msg_body~load_coins();
 
-        withdraw(amount, reciever_address, sender_address_hash);
+        throw_if(error::not_enough_budget_balance, amount + fee_amount < my_balance);
+    
+        withdraw(my_balance, amount, reciever_address, sender_address_hash);
 
-        ;; TODO: send fee to the fee address
+        send_fee(my_balance, fee_amount, fee_address, sender_address_hash);
     }
 
     throw(0xffff);
