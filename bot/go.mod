@@ -10,6 +10,7 @@ require (
 	github.com/google/go-github/v50 v50.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.7
+	github.com/rs/cors v1.8.3
 	github.com/stretchr/testify v1.8.0
 	github.com/xssnick/tonutils-go v1.5.2
 	go.uber.org/zap v1.24.0

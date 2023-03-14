@@ -54,6 +54,7 @@ type InstallationInfoResponse struct {
 
 type OwnerInfoResponse struct {
 	Name              string   `json:"name"`
+	AvatarURL         string   `json:"avatar_url"`
 	TotalBudget       string   `json:"total_budget"`
 	AvailableBudget   string   `json:"available_budget"`
 	TotalBounties     int      `json:"total_bounties"`

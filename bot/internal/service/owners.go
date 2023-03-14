@@ -114,7 +114,7 @@ func (s *OwnersService) GetInstallationInfo(ctx context.Context, address string)
 
 	info := &entity.InstallationInfo{
 		Installed: true,
-		OwnerName: "",
+		OwnerName: owner.Name,
 		OwnerID:   owner.ID,
 	}
 

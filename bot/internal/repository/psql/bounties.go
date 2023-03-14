@@ -18,7 +18,7 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.BountyWithOwner
 	query := `SELECT 
     	    	bounties.owner_gh_id, bounties.title, bounties.url, bounties.reward,
     	    	owners.login, owners.url, owners.avatar_url, owners.type FROM bounties, owners 
-    	WHERE bounties.owner_gh_id = owners.gh_id`
+    	WHERE bounties.owner_gh_id = owners.gh_id AND bounties.closed = FALSE `
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
@@ -54,7 +54,7 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.BountyWithOwner
 }
 
 func (s *bountiesStorage) GetByOwnerId(ctx context.Context, ownerId int64) ([]*entity.Bounty, error) {
-	query := `SELECT  gh_id, owner_gh_id, title, url, reward
+	query := `SELECT  gh_id, owner_gh_id, title, url, reward, closed
     	    FROM bounties WHERE owner_gh_id = $1`
 
 	rows, err := s.db.QueryContext(ctx, query, ownerId)
@@ -76,6 +76,7 @@ func (s *bountiesStorage) GetByOwnerId(ctx context.Context, ownerId int64) ([]*e
 			&bounty.Title,
 			&bounty.URL,
 			&reward,
+			&bounty.Closed,
 		); err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}

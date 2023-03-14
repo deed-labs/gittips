@@ -31,9 +31,14 @@ func (s *BountiesService) GetByOwnerId(ctx context.Context, ownerId int64) ([]*e
 func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error {
 	parsedBody := parser.Parse(body)
 
-	parsedBody.Reward = strings.Replace(parsedBody.Reward, ",", ".", 1)
+	var reward string
+	if parsedBody.Reward != "" {
+		reward = strings.Replace(parsedBody.Reward, ",", ".", 1)
+	} else {
+		reward = "0"
+	}
 
-	parsedReward, err := tlb.FromTON(parsedBody.Reward)
+	parsedReward, err := tlb.FromTON(reward)
 	if err != nil {
 		return ErrInvalidValue
 	}

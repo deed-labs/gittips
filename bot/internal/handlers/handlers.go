@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 )
 
@@ -42,7 +43,22 @@ func New(services *service.Services, whSecret string, logger *zap.SugaredLogger)
 		logger:   logger,
 	}
 
+	corsCfg := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods: []string{
+			http.MethodOptions,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPatch,
+			http.MethodPut,
+			http.MethodDelete,
+		},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Accept-Encoding"},
+	})
+
 	r := chi.NewRouter()
+	r.Use(corsCfg.Handler)
 	r.Use(middleware.DefaultLogger)
 	r.Post("/setup", h.handleSetup)
 	r.Post("/github", h.handleGitHubWebhook)
@@ -197,6 +213,7 @@ func (h *Handlers) handleGetOwner(w http.ResponseWriter, r *http.Request) {
 
 	resp := OwnerInfoResponse{
 		Name:              owner.Owner.Name,
+		AvatarURL:         owner.Owner.AvatarURL,
 		TotalBudget:       owner.TotalBudget.String(),
 		AvailableBudget:   owner.AvailableBudget.String(),
 		TotalBounties:     owner.TotalBounties,
