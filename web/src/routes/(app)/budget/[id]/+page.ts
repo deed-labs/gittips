@@ -1,4 +1,4 @@
-import { fetchBounties, fetchOwnerInfo } from '$lib/pkg/fetch/fetch';
+import { fetchOwnerInfo } from '$lib/pkg/fetch';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {

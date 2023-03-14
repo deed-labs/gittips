@@ -18,3 +18,9 @@ export type OwnerInfo = {
 	availableBounties: number;
 	bounties: Bounty[];
 };
+
+export type InstallationInfo = {
+	installed: boolean;
+	name: string;
+	id: number;
+};

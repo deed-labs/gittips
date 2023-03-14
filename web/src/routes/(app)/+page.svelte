@@ -199,7 +199,7 @@
 >
 	{#if isInView[5]}
 		<div class="card bg-gray-700 w-full md:w-2/3 p-12" in:fade={{ duration: 1500 }}>
-			<h1 class="text-white text-4xl">Roadmap 2023</h1>
+			<h1 class="text-white text-4xl text-center">Roadmap 2023</h1>
 			<ul class="steps steps-vertical md:steps-horizontal mt-12 text-white">
 				<li data-content="Q1" class="step step-primary">
 					<p class="w-full text-center">Mainnet Launch</p>

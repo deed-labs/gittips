@@ -1,5 +1,5 @@
 import { writable, get, derived, type Readable } from 'svelte/store';
-import type { IWallet } from './pkg/wallet/wallet';
+import type { IWallet } from '../pkg/wallet/wallet';
 
 type Wallets = {
 	[name: string]: IWallet;

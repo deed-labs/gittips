@@ -1,4 +1,4 @@
-import type { Bounty, OwnerInfo } from '../../types';
+import type { Bounty, InstallationInfo, OwnerInfo } from '../../types';
 import { PUBLIC_API_URL } from '$env/static/public';
 import axios from 'axios';
 
@@ -13,11 +13,17 @@ interface BountyJSON {
 	reward: string;
 }
 
-interface BountiesRequest {
+interface BountiesResponse {
 	bounties: BountyJSON[];
 }
 
-interface OwnerInfoRequest {
+interface InstallationInfoResponse {
+	installed: boolean;
+	owner_name: string;
+	owner_id: number;
+}
+
+interface OwnerInfoResponse {
 	name: string;
 	total_budget: string;
 	available_budget: string;
@@ -32,7 +38,7 @@ const axiosAPI = axios.create({
 
 export const fetchBounties = async (): Promise<Bounty[]> => {
 	try {
-		const resp = await axiosAPI.get<BountiesRequest>('/api/bounties', {
+		const resp = await axiosAPI.get<BountiesResponse>('/api/bounties', {
 			headers: { Accept: 'application/json' }
 		});
 
@@ -87,11 +93,35 @@ export const setupInstallation = async (
 	}
 };
 
+export const fetchInstallationInfo = async (address: string): Promise<InstallationInfo> => {
+	let info: InstallationInfo = {} as InstallationInfo;
+
+	try {
+		const resp = await axiosAPI.get<InstallationInfoResponse>('/api/installation/' + address, {
+			headers: { Accept: 'application/json' }
+		});
+
+		info.installed = resp.data.installed;
+		info.name = resp.data.owner_name;
+		info.id = resp.data.owner_id;
+
+		return info;
+	} catch (error) {
+		if (axios.isAxiosError(error)) {
+			console.log('error message: ', error.message);
+		} else {
+			console.log('unexpected error: ', error);
+		}
+
+		return info;
+	}
+};
+
 export const fetchOwnerInfo = async (id: string): Promise<OwnerInfo> => {
 	let info: OwnerInfo = { bounties: [{}] } as OwnerInfo;
 
 	try {
-		const resp = await axiosAPI.get<OwnerInfoRequest>('/api/owner/' + id, {
+		const resp = await axiosAPI.get<OwnerInfoResponse>('/api/owner/' + id, {
 			headers: { Accept: 'application/json' }
 		});
 
