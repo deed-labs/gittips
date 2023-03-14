@@ -93,7 +93,7 @@
 		<a class="btn btn-ghost normal-case text-xl text-white" href={base + '/'}
 			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
 		>
-		<div class="text-sm breadcrumbs text-info mx-4">
+		<div class="text-sm breadcrumbs text-info mx-4 hidden md:block">
 			<ul>
 				{#each breadcrumbs as { name, href }}
 					{#if href}

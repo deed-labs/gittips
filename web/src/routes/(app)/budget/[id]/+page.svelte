@@ -66,43 +66,51 @@
 	<Header breadcrumbs={[{ name: 'budget', href: '' }]} />
 
 	<div class="p-10 sm:w-full md:w-2/3 mx-auto">
-		<div class="flex flex-col items-center w-full mb-24">
+		<div class="flex flex-col items-center w-full mb-12">
 			<h1 class="text-4xl font-bold my-5">{name}</h1>
 
-			<div class="stats shadow border border-secondary bg-base-200">
-				<div class="stat">
-					<div class="stat-title">Total budget</div>
-					<div class="flex flex-row items-center gap-1">
-						<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
-						<p class="stat-value text-secondary ">{bigIntToFloat(totalBudget, 9, 2)}</p>
-					</div>
-				</div>
-
-				<div class="stat">
-					<div class="stat-title">Available budget</div>
-					<div class="flex flex-row items-center gap-1">
-						<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
-						<p class="stat-value text-secondary ">{bigIntToFloat(availableBudget, 9, 2)}</p>
-					</div>
-				</div>
-
-				<div class="stat">
-					<div class="stat-figure text-secondary">
-						<div class="avatar">
-							<div class="w-16 rounded-full">
-								<img src={avatarLink} alt="Org logo" />
-							</div>
+			<div class="flex flex-col gap-5 w-full items-start">
+				<div
+					class="stats stats-vertical md:stats-horizontal shadow border border-secondary w-full bg-base-200"
+				>
+					<div class="stat">
+						<div class="stat-title">Total budget</div>
+						<div class="flex flex-row items-center gap-1">
+							<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
+							<p class="stat-value text-secondary ">{bigIntToFloat(totalBudget, 9, 2)}</p>
 						</div>
 					</div>
-					<div class="stat-value">86%</div>
-					<div class="stat-title">Bounties done</div>
-					<div class="stat-desc text-secondary">31 tasks remaining</div>
+
+					<div class="stat">
+						<div class="stat-title">Available budget</div>
+						<div class="flex flex-row items-center gap-1">
+							<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
+							<p class="stat-value text-secondary ">{bigIntToFloat(availableBudget, 9, 2)}</p>
+						</div>
+					</div>
+
+					<div class="stat">
+						<div class="stat-figure text-secondary">
+							<div class="avatar">
+								<div class="w-16 rounded-full">
+									<img src={avatarLink} alt="Org logo" />
+								</div>
+							</div>
+						</div>
+						<div class="stat-value">86%</div>
+						<div class="stat-title">Bounties done</div>
+						<div class="stat-desc text-secondary">31 tasks remaining</div>
+					</div>
+				</div>
+				<div class="flex flex-row gap-2 items-center justify-center">
+					<button class="btn btn-primary btn-sm">Add funds</button>
+					<button class="btn btn-secondary btn-sm">Withdraw</button>
 				</div>
 			</div>
 		</div>
 
-		<h1 class="text-4xl font-bold my-5">Bounties</h1>
-		<div class="overflow-x-auto w-full border border-secondary rounded rounded-xl">
+		<h1 class="text-3xl font-bold my-5">Bounties</h1>
+		<div class="overflow-x-auto w-full border border-secondary rounded rounded-2xl">
 			<table class="table w-full">
 				<!-- head -->
 				<thead>
