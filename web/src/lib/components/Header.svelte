@@ -12,7 +12,7 @@
 	import { base } from '$app/paths';
 	import type { InstallationInfo } from '$lib/types';
 	import { fetchInstallationInfo } from '$lib/pkg/fetch';
-	import { storage } from '$lib/stores/storage';
+	import { defaultData, storage } from '$lib/stores/storage';
 	import { shortAccountString } from '$lib/utils';
 
 	const { connected, address, wallets } = $TON;
@@ -33,12 +33,19 @@
 		}, 2000);
 	};
 
-	let installationInfo: InstallationInfo = { installed: false, name: '', id: 0 };
+	let installationInfo: InstallationInfo = $storage.owner;
 
 	const onInstalled = async () => {
 		(document.getElementById('install-modal') as HTMLInputElement).checked = false;
 		installationInfo = await fetchInstallationInfo($address);
-		console.log(installationInfo);
+		storage.set({
+			...$storage,
+			owner: {
+				installed: installationInfo.installed,
+				name: installationInfo.name,
+				id: installationInfo.id
+			}
+		});
 	};
 
 	const startInstallation = async () => {
@@ -51,10 +58,16 @@
 
 	const onConnected = async () => {
 		(document.getElementById('qr-modal') as HTMLInputElement).checked = false;
-		// Store address to local storage only to be able to get it from new tab after installation.
-		storage.set({ ...$storage, wallet_address: $address });
-
 		installationInfo = await fetchInstallationInfo($address);
+		storage.set({
+			...$storage,
+			wallet_address: $address,
+			owner: {
+				installed: installationInfo.installed,
+				name: installationInfo.name,
+				id: installationInfo.id
+			}
+		});
 	};
 
 	const connect = async (wallet: WalletStore) => {
@@ -82,10 +95,13 @@
 	const disconnect = async () => {
 		await TON.disconnect();
 		isDisconnectingModalOpen = false;
+
+		storage.set(defaultData);
 	};
 
 	let classProps = '';
 
+	export let hideGitHubButton: boolean = false;
 	export { classProps as class };
 </script>
 
@@ -109,7 +125,7 @@
 		</div>
 	</div>
 	<div class="flex-none">
-		{#if $connected}
+		{#if $connected && !hideGitHubButton}
 			<div>
 				{#if !installationInfo.installed}
 					<label
@@ -121,7 +137,7 @@
 				{:else}
 					<a
 						class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
-						href={base + '/budget/' + installationInfo.id}
+						href={base + '/budget'}
 					>
 						<img
 							class="mr-2"

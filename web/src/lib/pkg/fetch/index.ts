@@ -118,7 +118,7 @@ export const fetchInstallationInfo = async (address: string): Promise<Installati
 	}
 };
 
-export const fetchOwnerInfo = async (id: string): Promise<OwnerInfo> => {
+export const fetchOwnerInfo = async (id: number): Promise<OwnerInfo> => {
 	let info: OwnerInfo = { bounties: new Array<Bounty>() } as OwnerInfo;
 
 	try {
