@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS owners (
     gh_id integer primary key,
     login varchar(128),
+    name varchar(128),
     url varchar(160),
     avatar_url varchar(160),
     type varchar(20),
@@ -15,5 +16,6 @@ CREATE TABLE IF NOT EXISTS bounties (
     owner_gh_id integer references owners(gh_id),
     title text,
     url varchar(160),
-    reward bigint
+    reward bigint,
+    closed boolean default false
 );

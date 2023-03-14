@@ -44,5 +44,7 @@ export interface IWallet {
 
 	connectInjected(cb: (address: string) => void): Promise<void>;
 
+	sendTransaction(...messages: []): Promise<void>;
+
 	disconnect(): Promise<void>;
 }

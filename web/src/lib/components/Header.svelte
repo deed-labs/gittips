@@ -7,10 +7,13 @@
 	import QRCodeStyling from 'qr-code-styling';
 
 	import GitHubLogo from '$lib/images/github_logo.png';
-	import { shortAccountString, storeAddressToLocalStorage } from '$lib/utils';
-	import { TON, type WalletStore } from '$lib/stores';
+	import { TON, type WalletStore } from '$lib/stores/network';
 	import { fade } from 'svelte/transition';
 	import { base } from '$app/paths';
+	import type { InstallationInfo } from '$lib/types';
+	import { fetchInstallationInfo } from '$lib/pkg/fetch';
+	import { storage } from '$lib/stores/storage';
+	import { shortAccountString } from '$lib/utils';
 
 	const { connected, address, wallets } = $TON;
 
@@ -30,10 +33,28 @@
 		}, 2000);
 	};
 
-	const onConnected = () => {
+	let installationInfo: InstallationInfo = { installed: false, name: '', id: 0 };
+
+	const onInstalled = async () => {
+		(document.getElementById('install-modal') as HTMLInputElement).checked = false;
+		installationInfo = await fetchInstallationInfo($address);
+		console.log(installationInfo);
+	};
+
+	const startInstallation = async () => {
+		if (!installationInfo.installed) {
+			storage.subscribe((value) => {
+				if (value.bot_installation_done) onInstalled();
+			});
+		}
+	};
+
+	const onConnected = async () => {
 		(document.getElementById('qr-modal') as HTMLInputElement).checked = false;
 		// Store address to local storage only to be able to get it from new tab after installation.
-		storeAddressToLocalStorage($address);
+		storage.set({ ...$storage, wallet_address: $address });
+
+		installationInfo = await fetchInstallationInfo($address);
 	};
 
 	const connect = async (wallet: WalletStore) => {
@@ -73,7 +94,7 @@
 		<a class="btn btn-ghost normal-case text-xl text-white" href={base + '/'}
 			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
 		>
-		<div class="text-sm breadcrumbs text-info mx-4">
+		<div class="text-sm breadcrumbs text-info mx-4 hidden md:block">
 			<ul>
 				{#each breadcrumbs as { name, href }}
 					{#if href}
@@ -90,12 +111,26 @@
 	<div class="flex-none">
 		{#if $connected}
 			<div>
-				<label
-					for="install-modal"
-					class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
-				>
-					<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
-				</label>
+				{#if !installationInfo.installed}
+					<label
+						for="install-modal"
+						class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
+					>
+						<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
+					</label>
+				{:else}
+					<a
+						class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
+						href={base + '/budget/' + installationInfo.id}
+					>
+						<img
+							class="mr-2"
+							src={GitHubLogo}
+							alt="github logo"
+							width={25}
+						/>{installationInfo.name}
+					</a>
+				{/if}
 			</div>
 		{/if}
 		<div>
@@ -178,7 +213,8 @@
 				href="https://github.com/apps/gittips-bot"
 				target="_blank"
 				rel="noreferrer"
-				class="btn btn-sm">Install</a
+				class="btn btn-sm"
+				on:click={startInstallation}>Install</a
 			>
 		</div>
 	</div>

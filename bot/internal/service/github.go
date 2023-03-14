@@ -60,8 +60,33 @@ func (s *GitHubService) processInstallation(ctx context.Context, id int64, login
 		return err
 	}
 
+	var name string
+	switch ownerType {
+	case "User":
+		c, err := s.getUserClient(ctx, login)
+		if err != nil {
+			return fmt.Errorf("get user client: %w", err)
+		}
+		user, _, err := c.Users.Get(ctx, login)
+		if err != nil {
+			return fmt.Errorf("get user info: %w", err)
+		}
+		name = *user.Name
+
+	case "Organization":
+		c, err := s.getOrganizationClient(ctx, login)
+		if err != nil {
+			return fmt.Errorf("get organization client: %w", err)
+		}
+		org, _, err := c.Organizations.Get(ctx, login)
+		if err != nil {
+			return fmt.Errorf("get organization info: %w", err)
+		}
+		name = *org.Name
+	}
+
 	if !ownerExists {
-		err := s.owners.Create(ctx, id, login, url, avatarURL, ownerType)
+		err := s.owners.Create(ctx, id, login, name, url, avatarURL, ownerType)
 		if err != nil {
 			return fmt.Errorf("create owner: %w", err)
 		}
@@ -111,7 +136,12 @@ func (s *GitHubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.I
 			if err != nil {
 				return fmt.Errorf("create bounty: %w", err)
 			}
-		} else if payload.Action == "closed" || payload.Action == "deleted" {
+		} else if payload.Action == "closed" {
+			err := s.bounties.Close(ctx, payload.Issue.ID)
+			if err != nil {
+				return fmt.Errorf("delete bounty: %w", err)
+			}
+		} else if payload.Action == "deleted" {
 			err := s.bounties.Delete(ctx, payload.Issue.ID)
 			if err != nil {
 				return fmt.Errorf("delete bounty: %w", err)

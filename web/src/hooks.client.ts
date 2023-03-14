@@ -1,4 +1,4 @@
-import { TON } from './lib/stores';
+import { TON } from './lib/stores/network';
 import { MyTonWallet, OpenMask, TonKeeper, TonSafe } from './lib/pkg/wallet/ton';
 
 // Wrap async calls with async function that executes itself to decrease the level of await.

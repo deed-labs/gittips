@@ -9,3 +9,19 @@ export type Bounty = {
 	reward: string;
 	rewardUSD: string;
 };
+
+export type OwnerInfo = {
+	name: string;
+	avatarUrl: string;
+	totalBudget: string;
+	availableBudget: string;
+	totalBounties: number;
+	availableBounties: number;
+	bounties: Bounty[];
+};
+
+export type InstallationInfo = {
+	installed: boolean;
+	name: string;
+	id: number;
+};

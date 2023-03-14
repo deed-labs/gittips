@@ -4,6 +4,7 @@ import "math/big"
 
 type Owner struct {
 	ID              int64
+	Name            string
 	Login           string
 	URL             string
 	AvatarURL       string
@@ -12,7 +13,7 @@ type Owner struct {
 	WalletAddress   string
 }
 
-type Bounty struct {
+type BountyWithOwner struct {
 	ID             int64
 	OwnerID        int64
 	OwnerLogin     string
@@ -22,4 +23,28 @@ type Bounty struct {
 	Title          string
 	URL            string
 	Reward         *big.Int
+}
+
+type Bounty struct {
+	ID      int64
+	OwnerID int64
+	Title   string
+	URL     string
+	Reward  *big.Int
+	Closed  bool
+}
+
+type InstallationInfo struct {
+	Installed bool
+	OwnerName string
+	OwnerID   int64
+}
+
+type OwnerFullInfo struct {
+	Owner             *Owner
+	TotalBudget       *big.Int
+	AvailableBudget   *big.Int
+	TotalBounties     int
+	AvailableBounties int
+	Bounties          []*Bounty
 }

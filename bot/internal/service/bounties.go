@@ -11,28 +11,34 @@ import (
 )
 
 type BountiesService struct {
-	owners Owners
-
 	repository repository.Repository
 }
 
-func NewBountiesService(owners Owners, repository repository.Repository) *BountiesService {
+func NewBountiesService(repository repository.Repository) *BountiesService {
 	return &BountiesService{
-		owners:     owners,
 		repository: repository,
 	}
 }
 
-func (s *BountiesService) GetAll(ctx context.Context) ([]*entity.Bounty, error) {
+func (s *BountiesService) GetAll(ctx context.Context) ([]*entity.BountyWithOwner, error) {
 	return s.repository.Bounties().GetAll(ctx)
+}
+
+func (s *BountiesService) GetByOwnerId(ctx context.Context, ownerId int64) ([]*entity.Bounty, error) {
+	return s.repository.Bounties().GetByOwnerId(ctx, ownerId)
 }
 
 func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error {
 	parsedBody := parser.Parse(body)
 
-	parsedBody.Reward = strings.Replace(parsedBody.Reward, ",", ".", 1)
+	var reward string
+	if parsedBody.Reward != "" {
+		reward = strings.Replace(parsedBody.Reward, ",", ".", 1)
+	} else {
+		reward = "0"
+	}
 
-	parsedReward, err := tlb.FromTON(parsedBody.Reward)
+	parsedReward, err := tlb.FromTON(reward)
 	if err != nil {
 		return ErrInvalidValue
 	}
@@ -45,6 +51,7 @@ func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, t
 		Title:   title,
 		URL:     url,
 		Reward:  parsedReward.NanoTON(),
+		Closed:  false,
 	}
 
 	return s.repository.Bounties().Save(ctx, bounty)
@@ -52,4 +59,8 @@ func (s *BountiesService) Create(ctx context.Context, id int64, ownerID int64, t
 
 func (s *BountiesService) Delete(ctx context.Context, id int64) error {
 	return s.repository.Bounties().Delete(ctx, id)
+}
+
+func (s *BountiesService) Close(ctx context.Context, id int64) error {
+	return s.repository.Bounties().SetClosed(ctx, id, true)
 }

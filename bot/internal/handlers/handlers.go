@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/deed-labs/gittips/bot/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 )
 
@@ -41,11 +43,28 @@ func New(services *service.Services, whSecret string, logger *zap.SugaredLogger)
 		logger:   logger,
 	}
 
+	corsCfg := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		AllowedMethods: []string{
+			http.MethodOptions,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPatch,
+			http.MethodPut,
+			http.MethodDelete,
+		},
+		AllowedHeaders: []string{"Accept", "Content-Type", "Accept-Encoding"},
+	})
+
 	r := chi.NewRouter()
+	r.Use(corsCfg.Handler)
 	r.Use(middleware.DefaultLogger)
 	r.Post("/setup", h.handleSetup)
 	r.Post("/github", h.handleGitHubWebhook)
 	r.Get("/api/bounties", h.handleGetBounties)
+	r.Get("/api/installation/{address}", h.handleGetInstallation)
+	r.Get("/api/owner/{id}", h.handleGetOwner)
 
 	h.http = r
 
@@ -108,9 +127,9 @@ func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bountiesList := make([]Bounty, 0, len(bounties))
+	bountiesList := make([]BountyWithOwner, 0, len(bounties))
 	for _, v := range bounties {
-		bountiesList = append(bountiesList, Bounty{
+		bountiesList = append(bountiesList, BountyWithOwner{
 			OwnerID:        v.OwnerID,
 			Owner:          v.OwnerLogin,
 			OwnerURL:       v.OwnerURL,
@@ -122,9 +141,9 @@ func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	bountiesResponse := BountyResponse{Bounties: bountiesList}
+	resp := BountyResponse{Bounties: bountiesList}
 
-	if err := json.NewEncoder(w).Encode(bountiesResponse); err != nil {
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		h.logger.Error(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
@@ -149,4 +168,66 @@ func (h *Handlers) handleSetup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handlers) handleGetInstallation(w http.ResponseWriter, r *http.Request) {
+	address := chi.URLParam(r, "address")
+
+	installation, err := h.services.Owners.GetInstallationInfo(r.Context(), address)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
+
+	resp := InstallationInfoResponse{
+		Installed: installation.Installed,
+		OwnerName: installation.OwnerName,
+		OwnerID:   installation.OwnerID,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
+}
+
+func (h *Handlers) handleGetOwner(w http.ResponseWriter, r *http.Request) {
+	ownerIdParam := chi.URLParam(r, "id")
+
+	ownerId, err := strconv.Atoi(ownerIdParam)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+
+		return
+	}
+
+	owner, err := h.services.Owners.Get(r.Context(), int64(ownerId))
+	if err != nil && errors.Is(err, service.ErrOwnerNotFound) {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+
+		return
+	}
+
+	resp := OwnerInfoResponse{
+		Name:              owner.Owner.Name,
+		AvatarURL:         owner.Owner.AvatarURL,
+		TotalBudget:       owner.TotalBudget.String(),
+		AvailableBudget:   owner.AvailableBudget.String(),
+		TotalBounties:     owner.TotalBounties,
+		AvailableBounties: owner.AvailableBounties,
+		Bounties:          make([]Bounty, 0, len(owner.Bounties)),
+	}
+	for _, bounty := range owner.Bounties {
+		resp.Bounties = append(resp.Bounties, BountyFromEntity(bounty))
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
 }
