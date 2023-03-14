@@ -1,0 +1,1 @@
+import{a as e}from"./index-8d30d9a6.js";async function t({}){return{bounties:await e()}}const a=Object.freeze(Object.defineProperty({__proto__:null,load:t},Symbol.toStringTag,{value:"Module"}));export{a as _,t as l};

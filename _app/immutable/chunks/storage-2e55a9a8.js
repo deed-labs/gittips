@@ -1,0 +1,1 @@
+import{w as t}from"./paths-e66dfcb9.js";const e={wallet_address:"",bot_installation_done:!1,owner:{installed:!1,name:"",id:0}},s=t(localStorage.data?JSON.parse(localStorage.data):e);s.subscribe(a=>localStorage.setItem("data",JSON.stringify(a)));export{e as d,s};
