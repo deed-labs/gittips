@@ -20,6 +20,8 @@ type TON struct {
 
 const sendPayoutOP = 3
 
+var zeroBigInt = new(big.Int).SetInt64(0)
+
 func New(client *ton.APIClient, wallet *wallet.Wallet, routerAddr string) *TON {
 	return &TON{
 		client:     client,
@@ -54,4 +56,43 @@ func (t *TON) SendPayout(ctx context.Context, to string, amount *big.Int) error 
 	}
 
 	return nil
+}
+
+func (t *TON) GetBudgetBalance(ctx context.Context, walletAddress string) (*big.Int, error) {
+	walletAddr, err := address.ParseAddr(walletAddress)
+	if err != nil {
+		return nil, fmt.Errorf("parse address: %w", err)
+	}
+
+	block, err := t.client.CurrentMasterchainInfo(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get masterchain info: %w", err)
+	}
+
+	res, err := t.client.RunGetMethod(ctx, block, t.routerAddr, "get_budget_address", walletAddr)
+	if err != nil {
+		return nil, fmt.Errorf("run get method: %w", err)
+	}
+
+	sc, err := res.Slice(0)
+	if err != nil {
+		return nil, fmt.Errorf("load slice from result: %w", err)
+	}
+	_, bits, err := sc.RestBits()
+	if err != nil {
+		return nil, fmt.Errorf("load resulst bits: %w", err)
+	}
+
+	budgetAddr := address.NewAddress(bits[0], bits[1], bits[2:34])
+
+	account, err := t.client.GetAccount(ctx, block, budgetAddr)
+	if err != nil {
+		return nil, fmt.Errorf("get account: %w", err)
+	}
+
+	if !account.IsActive {
+		return zeroBigInt, nil
+	}
+
+	return account.State.Balance.NanoTON(), nil
 }

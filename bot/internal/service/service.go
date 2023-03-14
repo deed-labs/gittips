@@ -13,14 +13,18 @@ import (
 
 type Owners interface {
 	Exists(ctx context.Context, id int64) (bool, error)
-	Create(ctx context.Context, id int64, login string, url string, avatarURL string, ownerType string) error
+	Get(ctx context.Context, id int64) (*entity.OwnerFullInfo, error)
+	Create(ctx context.Context, id int64, login string, name string, url string, avatarURL string, ownerType string) error
 	LinkWithWallet(ctx context.Context, ownerId int64, walletAddress string) error
+	GetInstallationInfo(ctx context.Context, address string) (*entity.InstallationInfo, error)
 }
 
 type Bounties interface {
-	GetAll(ctx context.Context) ([]*entity.Bounty, error)
+	GetAll(ctx context.Context) ([]*entity.BountyWithOwner, error)
+	GetByOwnerId(ctx context.Context, ownerId int64) ([]*entity.Bounty, error)
 	Create(ctx context.Context, id int64, ownerID int64, title string, url string, body string) error
 	Delete(ctx context.Context, id int64) error
+	Close(ctx context.Context, id int64) error
 }
 
 type Commands interface {
@@ -53,8 +57,8 @@ type Deps struct {
 }
 
 func New(deps *Deps) *Services {
-	ownersSvc := NewOwnersService(deps.Repository)
-	bountiesSvc := NewBountiesService(ownersSvc, deps.Repository)
+	bountiesSvc := NewBountiesService(deps.Repository)
+	ownersSvc := NewOwnersService(bountiesSvc, deps.TON, deps.Repository)
 	commandsSvc := NewCommandsService(deps.TON, deps.Repository)
 	githubSvc := NewGitHubService(deps.GitHubClient, ownersSvc, bountiesSvc, commandsSvc)
 
@@ -67,6 +71,7 @@ func New(deps *Deps) *Services {
 }
 
 var (
-	ErrInvalidValue = errors.New("invalid value")
-	ErrUserNotFound = errors.New("user not found")
+	ErrOwnerNotFound = errors.New("owner not found")
+	ErrInvalidValue  = errors.New("invalid value")
+	ErrUserNotFound  = errors.New("user not found")
 )

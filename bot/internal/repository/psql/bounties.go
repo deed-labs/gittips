@@ -14,13 +14,50 @@ type bountiesStorage struct {
 	db *sql.DB
 }
 
-func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) {
+func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.BountyWithOwner, error) {
 	query := `SELECT 
     	    	bounties.owner_gh_id, bounties.title, bounties.url, bounties.reward,
     	    	owners.login, owners.url, owners.avatar_url, owners.type FROM bounties, owners 
     	WHERE bounties.owner_gh_id = owners.gh_id`
 
 	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return []*entity.BountyWithOwner{}, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("query: %w", err)
+	}
+
+	bounties := make([]*entity.BountyWithOwner, 0)
+
+	for rows.Next() {
+		var reward int64
+
+		bounty := new(entity.BountyWithOwner)
+		if err := rows.Scan(
+			&bounty.OwnerID,
+			&bounty.Title,
+			&bounty.URL,
+			&reward,
+			&bounty.OwnerLogin,
+			&bounty.OwnerURL,
+			&bounty.OwnerAvatarURL,
+			&bounty.OwnerType,
+		); err != nil {
+			return nil, fmt.Errorf("scan: %w", err)
+		}
+
+		bounty.Reward = big.NewInt(reward)
+		bounties = append(bounties, bounty)
+	}
+
+	return bounties, nil
+}
+
+func (s *bountiesStorage) GetByOwnerId(ctx context.Context, ownerId int64) ([]*entity.Bounty, error) {
+	query := `SELECT  gh_id, owner_gh_id, title, url, reward
+    	    FROM bounties WHERE owner_gh_id = $1`
+
+	rows, err := s.db.QueryContext(ctx, query, ownerId)
 	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return []*entity.Bounty{}, nil
 	} else if err != nil {
@@ -34,14 +71,11 @@ func (s *bountiesStorage) GetAll(ctx context.Context) ([]*entity.Bounty, error) 
 
 		bounty := new(entity.Bounty)
 		if err := rows.Scan(
+			&bounty.ID,
 			&bounty.OwnerID,
 			&bounty.Title,
 			&bounty.URL,
 			&reward,
-			&bounty.OwnerLogin,
-			&bounty.OwnerURL,
-			&bounty.OwnerAvatarURL,
-			&bounty.OwnerType,
 		); err != nil {
 			return nil, fmt.Errorf("scan: %w", err)
 		}
@@ -84,6 +118,17 @@ func (s *bountiesStorage) SetReward(ctx context.Context, bountyId int64, value *
 	query := `UPDATE bounties SET reward = $1 WHERE gh_id = $2`
 
 	_, err := s.db.ExecContext(ctx, query, value.String(), bountyId)
+	if err != nil {
+		return fmt.Errorf("exec: %w", err)
+	}
+
+	return nil
+}
+
+func (s *bountiesStorage) SetClosed(ctx context.Context, bountyId int64, closed bool) error {
+	query := `UPDATE bounties SET closed = $1 WHERE gh_id = $2`
+
+	_, err := s.db.ExecContext(ctx, query, closed, bountyId)
 	if err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}
