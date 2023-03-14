@@ -12,6 +12,7 @@ export type Bounty = {
 
 export type OwnerInfo = {
 	name: string;
+	avatarUrl: string;
 	totalBudget: string;
 	availableBudget: string;
 	totalBounties: number;

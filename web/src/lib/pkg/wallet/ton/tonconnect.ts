@@ -1,5 +1,6 @@
 import TonConnect, {
 	isWalletInfoInjected,
+	UserRejectsError,
 	type Wallet,
 	type WalletInfo,
 	type WalletInfoInjected,
@@ -84,6 +85,23 @@ export default class TonConnectWallet {
 		}, console.error);
 
 		this.connector.connect(walletConnectionSource);
+	}
+
+	async sendTransaction(...messages: []): Promise<void> {
+		const request = {
+			validUntil: Math.round(Date.now() / 1000 + 7200),
+			messages
+		};
+
+		try {
+			await this.connector.sendTransaction(request);
+		} catch (e) {
+			if (e instanceof UserRejectsError) {
+				console.error('You rejected the transaction. Please confirm it to send to the blockchain');
+			} else {
+				console.error('Unknown error happened', e);
+			}
+		}
 	}
 
 	async disconnect(): Promise<void> {

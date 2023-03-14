@@ -33,11 +33,12 @@
 		}, 2000);
 	};
 
-	let installationInfo: InstallationInfo;
+	let installationInfo: InstallationInfo = { installed: false, name: '', id: 0 };
 
 	const onInstalled = async () => {
 		(document.getElementById('install-modal') as HTMLInputElement).checked = false;
 		installationInfo = await fetchInstallationInfo($address);
+		console.log(installationInfo);
 	};
 
 	const startInstallation = async () => {

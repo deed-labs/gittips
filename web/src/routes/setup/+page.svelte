@@ -12,6 +12,7 @@
 
 	onMount(async () => {
 		await setupInstallation(address, installationId);
+		storage.set({ ...$storage, bot_installation_done: true });
 	});
 </script>
 

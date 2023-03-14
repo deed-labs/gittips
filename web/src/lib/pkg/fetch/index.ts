@@ -25,6 +25,7 @@ interface InstallationInfoResponse {
 
 interface OwnerInfoResponse {
 	name: string;
+	avatar_url: string;
 	total_budget: string;
 	available_budget: string;
 	total_bounties: number;
@@ -118,7 +119,7 @@ export const fetchInstallationInfo = async (address: string): Promise<Installati
 };
 
 export const fetchOwnerInfo = async (id: string): Promise<OwnerInfo> => {
-	let info: OwnerInfo = { bounties: [{}] } as OwnerInfo;
+	let info: OwnerInfo = { bounties: new Array<Bounty>() } as OwnerInfo;
 
 	try {
 		const resp = await axiosAPI.get<OwnerInfoResponse>('/api/owner/' + id, {
@@ -126,6 +127,7 @@ export const fetchOwnerInfo = async (id: string): Promise<OwnerInfo> => {
 		});
 
 		info.name = resp.data.name;
+		info.avatarUrl = resp.data.avatar_url;
 		info.totalBudget = resp.data.total_budget;
 		info.availableBudget = resp.data.available_budget;
 		info.totalBounties = resp.data.total_bounties;

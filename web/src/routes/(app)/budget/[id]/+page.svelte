@@ -6,68 +6,16 @@
 	/** @type {import('./$types').PageData} */
 	export let data;
 
-	// TODO: replace with real data
-	const name = 'DEED Labs';
-	const avatarLink = 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4';
-	const totalBudget = '100000000000';
-	const availableBudget = '56000000000';
-
-	data.bounties.push(
-		...[
-			{
-				ownerId: 0,
-				title: 'Fix minor bug in interface',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '10000000000',
-				rewardUSD: '23.4'
-			},
-			{
-				ownerId: 0,
-				title: 'Write tests for parser',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '50000000000',
-				rewardUSD: '23.4'
-			},
-			{
-				ownerId: 0,
-				title: 'Update fonts',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '5000000000',
-				rewardUSD: '23.4'
-			},
-			{
-				ownerId: 0,
-				title: 'Implement OAuth authorization',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '250000000000',
-				rewardUSD: '23.4'
-			}
-		]
-	);
+	const remainingNumber = data.totalBounties - data.availableBounties;
+	const donePercentage = ((remainingNumber * 100) / data.totalBounties).toFixed(0);
 </script>
 
 <div>
 	<Header breadcrumbs={[{ name: 'budget', href: '' }]} />
 
-	<div class="p-10 sm:w-full md:w-2/3 mx-auto">
+	<div class="p-10 sm:w-full md:w-2/3 mx-auto max-w-screen-2xl">
 		<div class="flex flex-col items-center w-full mb-12">
-			<h1 class="text-4xl font-bold my-5">{name}</h1>
+			<h1 class="text-4xl font-bold my-5">{data.name}</h1>
 
 			<div class="flex flex-col gap-5 w-full items-start">
 				<div
@@ -77,7 +25,7 @@
 						<div class="stat-title">Total budget</div>
 						<div class="flex flex-row items-center gap-1">
 							<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
-							<p class="stat-value text-secondary ">{bigIntToFloat(totalBudget, 9, 2)}</p>
+							<p class="stat-value text-secondary ">{bigIntToFloat(data.totalBudget, 9, 2)}</p>
 						</div>
 					</div>
 
@@ -85,7 +33,7 @@
 						<div class="stat-title">Available budget</div>
 						<div class="flex flex-row items-center gap-1">
 							<img src={TONDiamondBlueLogo} alt="ton logo" width={25} />
-							<p class="stat-value text-secondary ">{bigIntToFloat(availableBudget, 9, 2)}</p>
+							<p class="stat-value text-secondary ">{bigIntToFloat(data.availableBudget, 9, 2)}</p>
 						</div>
 					</div>
 
@@ -93,18 +41,18 @@
 						<div class="stat-figure text-secondary">
 							<div class="avatar">
 								<div class="w-16 rounded-full">
-									<img src={avatarLink} alt="Org logo" />
+									<img src={data.avatarUrl} alt="Org logo" />
 								</div>
 							</div>
 						</div>
-						<div class="stat-value">86%</div>
+						<div class="stat-value">{donePercentage}%</div>
 						<div class="stat-title">Bounties done</div>
-						<div class="stat-desc text-secondary">31 tasks remaining</div>
+						<div class="stat-desc text-secondary">{data.availableBounties} tasks remaining</div>
 					</div>
 				</div>
 				<div class="flex flex-row gap-2 items-center justify-center">
-					<button class="btn btn-primary btn-sm">Add funds</button>
-					<button class="btn btn-secondary btn-sm">Withdraw</button>
+					<label for="add-funds-modal" class="btn btn-primary btn-sm">Add funds</label>
+					<label for="withdrawal-modal" class="btn btn-secondary btn-sm">Withdraw</label>
 				</div>
 			</div>
 		</div>
@@ -131,7 +79,7 @@
 							</td>
 							<td>
 								<div class="flex flex-row items-center gap-1">
-									<img src={TONDiamondBlueLogo} alt="ethereum logo" width={17} />
+									<img src={TONDiamondBlueLogo} alt="ton logo" width={17} />
 									<p class="text-lg">{bigIntToFloat(bounty.reward, 9, 2)}</p>
 								</div>
 								<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
@@ -161,5 +109,66 @@
 				</tbody>
 			</table>
 		</div>
+	</div>
+</div>
+
+<!-- Add funds modal -->
+
+<input type="checkbox" id="add-funds-modal" class="modal-toggle" />
+<div class="modal modal-bottom sm:modal-middle">
+	<div class="modal-box">
+		<h3 class="font-bold text-2xl">Add funds</h3>
+		<label
+			for="add-funds-modal"
+			class="btn btn-primary btn-outline btn-sm btn-circle absolute right-2 top-2">✕</label
+		>
+		<p class="my-5 text-gray-400">Enter the amount to be transferred to the contract balance.</p>
+		<div class="flex flex-row items-center gap-5 w-full">
+			<div>
+				<img src={TONDiamondBlueLogo} alt="ton logo" width={35} />
+			</div>
+			<div class="w-full">
+				<input
+					type="number"
+					placeholder="10.000"
+					class="input input-bordered border w-full text-right"
+					min="0.000"
+					step="0.001"
+				/>
+			</div>
+			<button class="btn btn-primary">Confirm</button>
+		</div>
+		<div class="modal-action" />
+	</div>
+</div>
+
+<!-- Withdrawal modal -->
+
+<input type="checkbox" id="withdrawal-modal" class="modal-toggle" />
+<div class="modal modal-bottom sm:modal-middle">
+	<div class="modal-box">
+		<h3 class="font-bold text-2xl">Withdrawal</h3>
+		<label
+			for="withdrawal-modal"
+			class="btn btn-primary btn-outline btn-sm btn-circle absolute right-2 top-2">✕</label
+		>
+		<p class="mt-5 text-gray-400">Enter the amount to withdraw from the contract balance.</p>
+		<p class="mb-5 mt-2">Maximum - {bigIntToFloat(data.availableBudget, 9, 4)}</p>
+		<div class="flex flex-row items-center gap-5 w-full">
+			<div>
+				<img src={TONDiamondBlueLogo} alt="ton logo" width={35} />
+			</div>
+			<div class="w-full">
+				<input
+					type="number"
+					placeholder="10.000"
+					class="input input-bordered border w-full text-right"
+					min="0.000"
+					step="0.001"
+				/>
+			</div>
+			<button class="btn btn-primary">Confirm</button>
+		</div>
+		<div class="modal-action" />
 	</div>
 </div>
