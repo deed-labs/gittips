@@ -138,14 +138,27 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::set_fee) {
-        (_, slice admin_addr,slice fee_addr, cell budget_code) = load_data();      ;; admin_addr:MsgAddress budget_code:^Cell
-        (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
+        (_, slice admin_addr,slice fee_addr, cell budget_code) = load_data();
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);
 
-        throw_if(error::not_an_admin, admin_address_hash != sender_address_hash);  ;; check admin access
+        throw_if(error::not_an_admin, admin_address_hash != sender_address_hash);
 
-        int fee_rate = in_msg_body~load_uint(8); ;; fee_rate:uint8
+        int fee_rate = in_msg_body~load_uint(8);
 
         save_data(fee_rate, admin_addr, fee_addr, budget_code);
+
+        return();
+    }
+
+    if (op == op::set_fee_address) {
+        (int fee_rate, slice admin_addr, _, cell budget_code) = load_data();      
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);   
+
+        throw_if(error::not_an_admin, admin_address_hash != sender_address_hash);
+
+        slice new_fee_addr = in_msg_body~load_msg_addr();
+
+        save_data(fee_rate, admin_addr, new_fee_addr, budget_code);
 
         return();
     }
