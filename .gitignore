@@ -4,3 +4,4 @@
 
 contracts/node_modules/
 contracts/build/
+.DS_Store
