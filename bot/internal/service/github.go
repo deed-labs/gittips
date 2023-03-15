@@ -139,7 +139,7 @@ func (s *GitHubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.I
 		} else if payload.Action == "closed" {
 			err := s.bounties.Close(ctx, payload.Issue.ID)
 			if err != nil {
-				return fmt.Errorf("delete bounty: %w", err)
+				return fmt.Errorf("close bounty: %w", err)
 			}
 		} else if payload.Action == "deleted" {
 			err := s.bounties.Delete(ctx, payload.Issue.ID)
@@ -259,10 +259,6 @@ func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 		}
 	}
 
-	return nil
-}
-
-func (s *GitHubService) ProcessNewPR(ctx context.Context, payload ghHooks.PullRequestPayload) error {
 	return nil
 }
 

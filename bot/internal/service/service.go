@@ -38,7 +38,6 @@ type GitHub interface {
 	ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error
 	ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error
 	ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error
-	ProcessNewPR(ctx context.Context, payload ghHooks.PullRequestPayload) error
 	ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error
 	ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error
 }

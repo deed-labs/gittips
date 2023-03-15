@@ -27,7 +27,6 @@ var githubEvents = []ghHooks.Event{
 	ghHooks.InstallationRepositoriesEvent,
 	ghHooks.IssuesEvent,
 	ghHooks.IssueCommentEvent,
-	ghHooks.PullRequestEvent,
 	ghHooks.PullRequestReviewCommentEvent,
 }
 
@@ -103,8 +102,6 @@ func (h *Handlers) handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		err = h.services.GitHub.ProcessIssueEvent(ctx, p)
 	case ghHooks.IssueCommentPayload:
 		err = h.services.GitHub.ProcessIssueComment(ctx, p)
-	case ghHooks.PullRequestPayload:
-		err = h.services.GitHub.ProcessNewPR(ctx, p)
 	case ghHooks.PullRequestReviewCommentPayload:
 		err = h.services.GitHub.ProcessPRComment(ctx, p)
 	default:
