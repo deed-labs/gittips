@@ -21,9 +21,8 @@ type GitHub struct {
 }
 
 type TON struct {
-	URL            string `env:"TON_URL"`
+	ConfigURL      string `env:"TON_CONFIG_URL"`
 	RouterContract string `env:"TON_ROUTER_CONTRACT"`
-	ServerKey      string `env:"TON_SERVER_KEY"`
 	WalletSeed     string `env:"TON_WALLET_SEED"`
 }
 

@@ -64,6 +64,8 @@ func (t *TON) GetBudgetBalance(ctx context.Context, walletAddress string) (*big.
 		return nil, fmt.Errorf("parse address: %w", err)
 	}
 
+	ctx = t.client.Client().StickyContext(ctx)
+
 	block, err := t.client.CurrentMasterchainInfo(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("get masterchain info: %w", err)
