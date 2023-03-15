@@ -10,12 +10,14 @@ describe('Router', () => {
     let router: SandboxContract<Router>;
     let admin: SandboxContract<TreasuryContract>;
     let owner: SandboxContract<TreasuryContract>;
+    let random: SandboxContract<TreasuryContract>;
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
 
         admin = await blockchain.treasury('admin');
         owner = await blockchain.treasury('owner');
+        random = await blockchain.treasury('random');
 
         router = blockchain.openContract(
             new Router(0, {
@@ -90,5 +92,43 @@ describe('Router', () => {
         // TODO: calculate fees and compare with the exact amount.
         expect(newOwnerBalance).toBeGreaterThan(toNano('4.9') + oldOwnerBalance);
         expect(budgetContract.balance).toBeLessThan(toNano('5.1'));
+    });
+
+    it('should send payout', async () => {
+        let toContract = await blockchain.getContract(random.address);
+        let oldToBalance = toContract.balance;
+
+        let result = await router.sendSendPayout(admin.getSender(), {
+            ownerAddress: owner.address,
+            toAddress: toContract.address,
+            amount: toNano('1.0'),
+        });
+
+        let budgetAddr = await router.getBudgetAddress(owner.address);
+        let budgetContract = await blockchain.getContract(budgetAddr);
+
+        toContract = await blockchain.getContract(toContract.address);
+        let newToBalance = toContract.balance;
+
+        console.log(inspect(result.transactions, false, 10000));
+
+        expect(result.transactions).toHaveTransaction({
+            from: budgetAddr,
+            to: toContract.address,
+            value: toNano('1.0'),
+            success: true,
+        });
+
+        expect(result.transactions).toHaveTransaction({
+            from: budgetAddr,
+            to: admin.address,
+            value: toNano('0.15'),
+            success: true,
+        });
+
+        // Compare with ±0.1 TON to level paid fees
+        // TODO: calculate fees and compare with the exact amount.
+        expect(newToBalance).toBeGreaterThan(toNano('0.9') + oldToBalance);
+        expect(budgetContract.balance).toBeLessThan(toNano('4.1'));
     });
 });

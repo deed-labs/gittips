@@ -86,7 +86,8 @@ export class Router implements Contract {
         via: Sender,
         params: {
             value?: bigint;
-            to_address: Address;
+            ownerAddress: Address;
+            toAddress: Address;
             amount: bigint;
         }
     ) {
@@ -95,7 +96,8 @@ export class Router implements Contract {
             body: beginCell()
                 .storeUint(3, 32) // op
                 .storeUint(0, 64) // query id
-                .storeAddress(params.to_address) // to_address
+                .storeAddress(params.ownerAddress) // owner address
+                .storeAddress(params.toAddress) // to address
                 .storeCoins(params.amount) // amount
                 .endCell(),
         });

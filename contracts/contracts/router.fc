@@ -102,18 +102,18 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::send_payout) {
-        (int fee_rate, slice admin_addr, slice fee_addr, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+        (int fee_rate, slice admin_addr, slice fee_addr, cell budget_code) = load_data();
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);
 
-        slice budget_address = calculate_budget_address(sender_address, budget_code);   ;; budget_address:MsgAddress
+        ;; only admin can send payouts.
+        throw_if(error::not_an_admin, admin_address_hash != sender_address_hash);
+        
+        slice owner_addr = in_msg_body~load_msg_addr();
+        slice to_addr = in_msg_body~load_msg_addr();   
+        int payout_amount = in_msg_body~load_coins();                  
 
-        slice to_addr = in_msg_body~load_msg_addr();   ;; to_addr:MsgAddress
-
-        int payout_amount = in_msg_body~load_coins();                  ;; payout_amount:uint64
-        int fee_amount = payout_amount / 100 * fee_rate;               ;; fee_amount:uint64
-
-        (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
-
-        throw_if(error::not_an_admin, admin_address_hash != sender_address_hash);  ;; check admin access
+        int fee_amount = payout_amount / 100 * fee_rate;
+        slice budget_address = calculate_budget_address(owner_addr, budget_code);
 
         cell body = begin_cell()
                     .store_body_header(op::send_payout, query_id)
@@ -131,8 +131,8 @@ slice add_budget(int amount, slice owner_address) impure {
                 .store_ref(body)
             .end_cell();
 
-        ;; send mode - 1 to pay transfer fees separately and revert on errors.
-        send_raw_message(msg, 1); 
+        ;; send mode - 64 to carry all the remaining value of the inbound message.
+        send_raw_message(msg, 64); 
 
         return ();
     }

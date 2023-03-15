@@ -81,12 +81,14 @@
     }
 
     if (op == op::send_payout) {
+        accept_message();
+
         slice to_addr = in_msg_body~load_msg_addr();
         slice fee_addr = in_msg_body~load_msg_addr();
         int payout_amount = in_msg_body~load_coins();
         int fee_amount = in_msg_body~load_coins();
 
-        throw_if(error::not_enough_budget_balance, payout_amount + fee_amount < balance);
+        throw_if(error::not_enough_budget_balance, payout_amount + fee_amount > balance);
     
         ;; send payout to receiver address
         send_coins(to_addr, payout_amount);
