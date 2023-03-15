@@ -1,0 +1,38 @@
+#include "../params.fc";
+
+cell pack_budget_data(slice owner_address) inline {
+    cell budget_data = begin_cell()
+                    .store_slice(my_address())  ;; budget admin data
+                    .store_slice(owner_address) ;; budget owner data
+                .end_cell();
+
+    return budget_data;
+}
+
+slice create_address(int wc, int address_hash) inline {
+    return begin_cell()
+        .store_uint(4, 3)
+        .store_int(wc, 8)
+        .store_uint(address_hash, 256)
+        .end_cell()
+    .begin_parse();
+}
+
+slice calculate_address_by_state_init(cell state_init) inline {
+    return create_address(workchain(), cell_hash(state_init));
+}
+
+cell calculate_budget_state_init(slice owner_address, cell budget_code) inline {
+    cell budget_state_init = begin_cell()
+                        .store_uint(0, 2)
+                        .store_dict(budget_code)
+                        .store_dict(pack_budget_data(owner_address))
+                        .store_uint(0, 1)
+                        .end_cell();
+
+    return budget_state_init;
+}
+
+slice calculate_budget_address(slice owner_address, cell budget_code) inline {
+    return calculate_address_by_state_init(calculate_budget_state_init(owner_address, budget_code));
+}

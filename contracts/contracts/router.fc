@@ -1,0 +1,168 @@
+#include "imports/stdlib.fc";
+#include "errors.fc";
+#include "utils/utils.fc";
+#include "op-codes.fc";
+
+const int fee::budget_deploy = 200000000;   ;; 0.2 TON
+
+() save_data(int fee_rate, slice admin_addr, slice fee_addr, cell budget_code) impure inline {
+    set_data(begin_cell()
+        .store_uint(fee_rate, 8)    ;; fee_rate:uint8
+        .store_slice(admin_addr)    ;; admin_addr:MsgAddress
+        .store_slice(fee_addr)      ;; fee_addr:MsgAddress
+        .store_ref(budget_code)     ;; budget_code:^Cell
+    .end_cell());
+}
+
+(int, slice, slice, cell) load_data() inline {
+    slice ds = get_data().begin_parse();
+
+    return (
+        ds~load_uint(8),    ;; fee_rate:uint8
+        ds~load_msg_addr(), ;; admin_addr:MsgAddress
+        ds~load_msg_addr(), ;; fee_addr:MsgAddress
+        ds~load_ref()       ;; budget_code:^Cell
+    );
+}
+
+slice add_budget(int amount, slice owner_address) impure {
+    (_, _, _, cell budget_code) = load_data();
+
+    cell budget_state_init = calculate_budget_state_init(owner_address, budget_code);
+    slice budget_address = calculate_address_by_state_init(budget_state_init);
+
+    cell master_msg = begin_cell()
+                    .store_body_header(op::add_budget, 0)
+                .end_cell();
+
+    cell msg = begin_cell()
+            .store_uint(0x18, 6)
+            .store_slice(budget_address)
+            .store_coins(amount)
+            .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
+            .store_ref(budget_state_init)
+            .store_ref(master_msg)
+        .end_cell();
+
+    ;; send mode - 1 to pay transfer fees separately and revert on errors.
+    send_raw_message(msg, 1); 
+
+    return budget_address;
+}
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4); ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+
+    if (flags & 1) {
+        return ();  ;; ignore all bounced messages
+    }
+
+    if (in_msg_body.slice_empty?()) {
+        return ();  ;; ignore empty messages
+    }
+
+    slice sender_address = cs~load_msg_addr();                      ;; sender:MsgAddress
+    (_, int sender_address_hash) = parse_std_addr(sender_address);  ;; sender_addr_hash:uint256
+
+    (int op, int query_id) = in_msg_body~load_body_header(); ;; body_header:int_msg_info$10 query_id:uint64 op:uint32
+
+    if (op == op::add_budget) {
+        throw_if(error::invalid_operation, msg_value < fee::budget_deploy);
+
+        add_budget(msg_value, sender_address);
+
+        return();
+    }
+
+    if (op == op::withdraw_budget) {
+        (_, _, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+
+        slice budget_address = calculate_budget_address(sender_address, budget_code);    ;; budget_address:MsgAddress
+
+        int amount = in_msg_body~load_coins(); ;; amount:uint64
+
+        cell master_msg = begin_cell()
+                    .store_body_header(op::withdraw_budget, query_id)
+                    .store_slice(sender_address)
+                    .store_coins(amount)
+                .end_cell();
+
+        cell msg = begin_cell()
+                .store_uint(0x18, 6)
+                .store_slice(budget_address)
+                .store_coins(0)
+                .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_ref(master_msg)
+            .end_cell();
+
+        ;; send mode - 1 to pay transfer fees separately and revert on errors.
+        send_raw_message(msg, 1); 
+
+        return ();
+    }
+
+    if (op == op::send_payout) {
+        (int fee_rate, slice admin_addr, slice fee_addr, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+
+        slice budget_address = calculate_budget_address(sender_address, budget_code);   ;; budget_address:MsgAddress
+
+        slice to_addr = in_msg_body~load_msg_addr();   ;; to_addr:MsgAddress
+
+        int payout_amount = in_msg_body~load_coins();                  ;; payout_amount:uint64
+        int fee_amount = payout_amount / 100 * fee_rate;               ;; fee_amount:uint64
+
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
+
+        throw_if(error::access_denied, admin_address_hash != sender_address_hash);  ;; check admin access
+
+        cell master_msg = begin_cell()
+                    .store_body_header(op::send_payout, query_id)
+                    .store_slice(to_addr)
+                    .store_slice(fee_addr)
+                    .store_coins(payout_amount)
+                    .store_coins(fee_amount)
+                .end_cell();
+
+        cell msg = begin_cell()
+                .store_uint(0x18, 6)
+                .store_slice(budget_address)
+                .store_coins(0)
+                .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .store_ref(master_msg)
+            .end_cell();
+
+        ;; send mode - 1 to pay transfer fees separately and revert on errors.
+        send_raw_message(msg, 1); 
+
+        return ();
+    }
+
+    if (op == op::set_fee) {
+        (_, slice admin_addr,slice fee_addr, cell budget_code) = load_data();      ;; admin_addr:MsgAddress budget_code:^Cell
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
+
+        throw_if(error::access_denied, admin_address_hash != sender_address_hash);  ;; check admin access
+
+        int fee_rate = in_msg_body~load_uint(8); ;; fee_rate:uint8
+
+        save_data(fee_rate, admin_addr, fee_addr, budget_code);
+
+        return();
+    }
+
+}
+
+slice get_budget_address(slice owner_addr) method_id {
+    (_, _, _, cell budget_code) = load_data();
+
+    slice budget_address = calculate_budget_address(owner_addr, budget_code);
+    
+    return budget_address;
+}
+
+int get_fee_rate() method_id {
+    (int fee_rate, _, _, _) = load_data();
+
+    return fee_rate;
+}
