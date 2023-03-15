@@ -9,11 +9,13 @@ describe('Router', () => {
     let blockchain: Blockchain;
     let router: SandboxContract<Router>;
     let admin: SandboxContract<TreasuryContract>;
+    let owner: SandboxContract<TreasuryContract>;
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
 
         admin = await blockchain.treasury('admin');
+        owner = await blockchain.treasury('owner');
 
         router = blockchain.openContract(
             new Router(0, {
@@ -49,12 +51,12 @@ describe('Router', () => {
     });
 
     it('should add budget', async () => {
-        await router.sendAddBudget(admin.getSender(), {
+        await router.sendAddBudget(owner.getSender(), {
             value: toNano('10.0'),
         });
-        let budgetAddr = await router.getBudgetAddress(admin.address);
+        let budgetAddr = await router.getBudgetAddress(owner.address);
 
-        expect(budgetAddr.toString()).toEqual(Budget.calculateAddress(router.address, admin.address).toString());
+        expect(budgetAddr.toString()).toEqual(Budget.calculateAddress(router.address, owner.address).toString());
 
         let budget = await blockchain.getContract(budgetAddr);
 
@@ -63,21 +65,30 @@ describe('Router', () => {
         expect(budget.balance).toBeGreaterThan(toNano('9.0'));
     });
 
-    // FIXME
-    // it('should withdraw budget', async () => {
-    //     let res = await router.sendWithdrawBudget(admin.getSender(), {
-    //         amount: toNano('5.0'),
-    //     });
+    it('should withdraw budget', async () => {
+        let ownerContract = await blockchain.getContract(owner.address);
+        let oldOwnerBalance = ownerContract.balance;
 
-    //     console.log(inspect(res.transactions, false, 10000));
+        let result = await router.sendWithdrawBudget(owner.getSender(), {
+            amount: toNano('5.0'),
+        });
 
-    //     console.log((await blockchain.getContract(router.address)).balance);
+        let budgetAddr = await router.getBudgetAddress(owner.address);
+        let budgetContract = await blockchain.getContract(budgetAddr);
 
-    //     let budgetAddr = await router.getBudgetAddress(admin.address);
-    //     let budget = await blockchain.getContract(budgetAddr);
+        ownerContract = await blockchain.getContract(owner.address);
+        let newOwnerBalance = ownerContract.balance;
 
-    //     // Compare with 5.0 because of the fees
-    //     // TODO: calculate fees and compare with the exact amount.
-    //     expect(budget.balance).toBeLessThan(toNano('5.0'));
-    // });
+        expect(result.transactions).toHaveTransaction({
+            from: budgetAddr,
+            to: owner.address,
+            value: toNano('5.0'),
+            success: true,
+        });
+
+        // Compare with ±0.1 TON to level paid fees
+        // TODO: calculate fees and compare with the exact amount.
+        expect(newOwnerBalance).toBeGreaterThan(toNano('4.9') + oldOwnerBalance);
+        expect(budgetContract.balance).toBeLessThan(toNano('5.1'));
+    });
 });

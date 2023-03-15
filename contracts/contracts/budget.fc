@@ -33,7 +33,7 @@
     return ();
 }
 
-() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+() recv_internal(int balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
     var cs = in_msg_full.begin_parse();
     var flags = cs~load_uint(4); ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
 
@@ -72,7 +72,7 @@
         ;; only owner can withdraw budget
         throw_if(error::not_an_owner, to_address_hash != owner_address_hash);
         ;; budget balance must not be less than withdrawal value
-        throw_if(error::not_enough_budget_balance, withdraw_amount < my_balance);
+        throw_if(error::not_enough_budget_balance, withdraw_amount > balance);
 
         ;; withdraw funds from contract to owner address
         send_coins(to_addr, withdraw_amount);
@@ -86,7 +86,7 @@
         int payout_amount = in_msg_body~load_coins();
         int fee_amount = in_msg_body~load_coins();
 
-        throw_if(error::not_enough_budget_balance, payout_amount + fee_amount < my_balance);
+        throw_if(error::not_enough_budget_balance, payout_amount + fee_amount < balance);
     
         ;; send payout to receiver address
         send_coins(to_addr, payout_amount);

@@ -76,8 +76,8 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::withdraw_budget) {
-        (_, _, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
-        slice budget_address = calculate_budget_address(sender_address, budget_code);    ;; budget_address:MsgAddress
+        (_, _, _, cell budget_code) = load_data();
+        slice budget_address = calculate_budget_address(sender_address, budget_code);
 
         int amount = in_msg_body~load_coins(); ;; amount:uint64
 
@@ -90,12 +90,13 @@ slice add_budget(int amount, slice owner_address) impure {
         cell msg = begin_cell()
                 .store_uint(0x18, 6)
                 .store_slice(budget_address)
+                .store_coins(0)
                 .store_uint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1)
                 .store_ref(body)
             .end_cell();
 
-        ;; send mode - 0 to pay transfer fees from message.
-        send_raw_message(msg, 0); 
+        ;; send mode - 64 to carry all the remaining value of the inbound message.
+        send_raw_message(msg, 64); 
 
         return ();
     }
