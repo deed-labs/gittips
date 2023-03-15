@@ -54,7 +54,7 @@
     (_, int owner_address_hash) = parse_std_addr(owner_addr);
 
     ;; only router can send messages to this contract
-    throw_if(error::access_denied, router_address_hash != sender_address_hash);
+    throw_if(error::not_a_router, router_address_hash != sender_address_hash);
 
     (int op, int query_id) = in_msg_body~load_body_header(); ;; body_header:int_msg_info$10 query_id:uint64 op:uint32
 
@@ -65,17 +65,19 @@
 
     if (op == op::withdraw_budget) {
         slice to_addr = in_msg_body~load_msg_addr();                     
-        (_, int to_address_hash) = parse_std_addr(sender_address); 
+        (_, int to_address_hash) = parse_std_addr(to_addr); 
 
         int withdraw_amount = in_msg_body~load_coins();
 
         ;; only owner can withdraw budget
-        throw_if(error::access_denied, to_address_hash != owner_address_hash);
+        throw_if(error::not_an_owner, to_address_hash != owner_address_hash);
         ;; budget balance must not be less than withdrawal value
         throw_if(error::not_enough_budget_balance, withdraw_amount < my_balance);
 
         ;; withdraw funds from contract to owner address
         send_coins(to_addr, withdraw_amount);
+
+        return ();
     }
 
     if (op == op::send_payout) {
@@ -91,6 +93,8 @@
 
         ;; send fee to fee address
         send_coins(fee_addr, fee_amount);
+
+        return ();
     }
 
     throw(0xffff);

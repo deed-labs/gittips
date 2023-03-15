@@ -1,4 +1,6 @@
 const int error::invalid_operation = 400;
-const int error::access_denied = 403;
+const int error::not_an_admin = 402;
+const int error::not_a_router = 403;
+const int error::not_an_owner = 404;
 const int error::not_enough_coins = 405;
 const int error::not_enough_budget_balance = 406;
