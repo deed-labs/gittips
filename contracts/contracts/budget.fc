@@ -1,0 +1,97 @@
+#include "imports/stdlib.fc";
+#include "errors.fc";
+#include "utils/utils.fc";
+#include "op-codes.fc";
+
+() save_data(slice router_addr, slice owner_addr) impure inline {
+    set_data(begin_cell()
+        .store_slice(router_addr)    ;; router_addr:MsgAddress
+        .store_slice(owner_addr)    ;; owner_addr:MsgAddress 
+    .end_cell());
+}
+
+(slice, slice) load_data() inline {
+    slice ds = get_data().begin_parse();
+
+    return (
+        ds~load_msg_addr(), ;; router_address:MsgAddress
+        ds~load_msg_addr()  ;; owner_addr:MsgAddress
+    );
+}
+
+() send_coins(slice to_address, int amount) impure {
+    cell msg = begin_cell()
+                    .store_uint(0x18, 6)
+                    .store_slice(to_address)
+                    .store_coins(amount)
+                    .store_uint(0, 1 + 4 + 4 + 64 + 32 + 1 + 1)
+                .end_cell();
+
+    ;; send mode - 1 to pay transfer fees separately and revert on errors.
+    send_raw_message(msg, 1);
+
+    return ();
+}
+
+() recv_internal(int my_balance, int msg_value, cell in_msg_full, slice in_msg_body) impure {
+    var cs = in_msg_full.begin_parse();
+    var flags = cs~load_uint(4); ;; int_msg_info$0 ihr_disabled:Bool bounce:Bool bounced:Bool
+
+    if (flags & 1) {
+        return ();  ;; ignore all bounced messages
+    }
+
+    if (in_msg_body.slice_empty?()) {
+        return ();  ;; ignore empty messages
+    }
+
+    slice sender_address = cs~load_msg_addr();                      ;; sender:MsgAddress
+    (_, int sender_address_hash) = parse_std_addr(sender_address);  ;; sender_addr_hash:uint256
+
+    (slice router_addr, slice owner_addr) = load_data();
+
+    (_, int router_address_hash) = parse_std_addr(router_addr);
+    (_, int owner_address_hash) = parse_std_addr(owner_addr);
+
+    ;; only router can send messages to this contract
+    throw_if(error::access_denied, router_address_hash != sender_address_hash);
+
+    (int op, int query_id) = in_msg_body~load_body_header(); ;; body_header:int_msg_info$10 query_id:uint64 op:uint32
+
+    if (op == op::add_budget) {
+        ;; recieve coins and do nothing
+        return ();
+    }
+
+    if (op == op::withdraw_budget) {
+        slice to_addr = in_msg_body~load_msg_addr();                     
+        (_, int to_address_hash) = parse_std_addr(sender_address); 
+
+        int withdraw_amount = in_msg_body~load_coins();
+
+        ;; only owner can withdraw budget
+        throw_if(error::access_denied, to_address_hash != owner_address_hash);
+        ;; budget balance must not be less than withdrawal value
+        throw_if(error::not_enough_budget_balance, withdraw_amount < my_balance);
+
+        ;; withdraw funds from contract to owner address
+        send_coins(to_addr, withdraw_amount);
+    }
+
+    if (op == op::send_payout) {
+        slice to_addr = in_msg_body~load_msg_addr();
+        slice fee_addr = in_msg_body~load_msg_addr();
+        int payout_amount = in_msg_body~load_coins();
+        int fee_amount = in_msg_body~load_coins();
+
+        throw_if(error::not_enough_budget_balance, payout_amount + fee_amount < my_balance);
+    
+        ;; send payout to receiver address
+        send_coins(to_addr, payout_amount);
+
+        ;; send fee to fee address
+        send_coins(fee_addr, fee_amount);
+    }
+
+    throw(0xffff);
+}

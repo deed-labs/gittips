@@ -32,15 +32,13 @@ slice add_budget(int amount, slice owner_address) impure {
     slice budget_address = calculate_address_by_state_init(budget_state_init);
 
     cell master_msg = begin_cell()
-                    .store_uint(op::add_budget, 32)
-                    .store_uint(0, 64)
-                    .store_coins(amount)
+                    .store_body_header(op::add_budget, 0)
                 .end_cell();
 
     cell msg = begin_cell()
             .store_uint(0x18, 6)
             .store_slice(budget_address)
-            .store_coins(fee::budget_deploy)
+            .store_coins(amount)
             .store_uint(4 + 2 + 1, 1 + 4 + 4 + 64 + 32 + 1 + 1 + 1)
             .store_ref(budget_state_init)
             .store_ref(master_msg)
@@ -67,13 +65,10 @@ slice add_budget(int amount, slice owner_address) impure {
     slice sender_address = cs~load_msg_addr();                      ;; sender:MsgAddress
     (_, int sender_address_hash) = parse_std_addr(sender_address);  ;; sender_addr_hash:uint256
 
-
     (int op, int query_id) = in_msg_body~load_body_header(); ;; body_header:int_msg_info$10 query_id:uint64 op:uint32
 
     if (op == op::add_budget) {
         throw_if(error::invalid_operation, msg_value < fee::budget_deploy);
-
-        ;; throw_unless(error::access_denied, equal_slices(sender_address, curr_address)); ;; check admin access
 
         add_budget(msg_value, sender_address);
 
@@ -88,6 +83,7 @@ slice add_budget(int amount, slice owner_address) impure {
         int amount = in_msg_body~load_coins(); ;; amount:uint64
 
         cell master_msg = begin_cell()
+                    .store_body_header(op::withdraw_budget, query_id)
                     .store_slice(sender_address)
                     .store_coins(amount)
                 .end_cell();
@@ -107,20 +103,24 @@ slice add_budget(int amount, slice owner_address) impure {
     }
 
     if (op == op::send_payout) {
-        (int fee_rate, _, slice fee_addr, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+        (int fee_rate, slice admin_addr, slice fee_addr, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
 
         slice budget_address = calculate_budget_address(sender_address, budget_code);   ;; budget_address:MsgAddress
 
-        slice receiver_address = in_msg_body~load_msg_addr();   ;; receiver_address:MsgAddress
-        int amount = in_msg_body~load_coins();                  ;; amount:uint64
+        slice to_addr = in_msg_body~load_msg_addr();   ;; to_addr:MsgAddress
 
-        int fee_amount = amount / 100 * fee_rate;
+        int payout_amount = in_msg_body~load_coins();                  ;; payout_amount:uint64
+        int fee_amount = payout_amount / 100 * fee_rate;               ;; fee_amount:uint64
+
+        (_, int admin_address_hash) = parse_std_addr(admin_addr);   ;; admin_addr_hash:uint256
+
+        throw_if(error::access_denied, admin_address_hash != sender_address_hash);  ;; check admin access
 
         cell master_msg = begin_cell()
-                    .store_slice(sender_address)
-                    .store_slice(receiver_address)
+                    .store_body_header(op::send_payout, query_id)
+                    .store_slice(to_addr)
                     .store_slice(fee_addr)
-                    .store_coins(amount)
+                    .store_coins(payout_amount)
                     .store_coins(fee_amount)
                 .end_cell();
 
@@ -154,15 +154,15 @@ slice add_budget(int amount, slice owner_address) impure {
 }
 
 slice get_budget_address(slice owner_addr) method_id {
-    (_, _, _, cell budget_code) = load_data(); ;; admin_address:MsgAddress budget_code:^Cell
+    (_, _, _, cell budget_code) = load_data();
 
-    slice budget_address = calculate_budget_address(owner_addr, budget_code);   ;; budget_address:MsgAddress
+    slice budget_address = calculate_budget_address(owner_addr, budget_code);
     
-    return(budget_address);
+    return budget_address;
 }
 
 int get_fee_rate() method_id {
-    (int fee_rate, _, _, _) = load_data(); 
+    (int fee_rate, _, _, _) = load_data();
 
-    return(fee_rate);
+    return fee_rate;
 }
