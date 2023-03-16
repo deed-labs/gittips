@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	ServerPort  int    `env:"SERVER_PORT"`
+	ServerPort  int    `env:"PORT"`
 	PostgresDSN string `env:"POSTGRES_DSN"`
 
 	GitHub GitHub
