@@ -2,18 +2,25 @@ import { Address, toNano } from 'ton-core';
 import { Router } from '../wrappers/Router';
 import { NetworkProvider } from '@ton-community/blueprint';
 import { Budget } from '../wrappers/Budget';
+import { load } from 'ts-dotenv';
+
+const env = load({
+    FEE_RATE: Number,
+    ADMIN_ADDRESS: String,
+    FEE_ADDRESS: String,
+});
 
 export async function run(provider: NetworkProvider) {
-    let feeRate = process.env.FEE_RATE;
+    let feeRate = env.FEE_RATE;
     if (!feeRate) throw new Error('fee rate not set');
-    let adminAddress = process.env.ADMIN_ADDRESS;
+    let adminAddress = env.ADMIN_ADDRESS;
     if (!adminAddress) throw new Error('admin address not set');
-    let feeAddress = process.env.FEE_ADDRESS;
+    let feeAddress = env.FEE_ADDRESS;
     if (!feeAddress) throw new Error('fee address not set');
 
     const router = provider.open(
         new Router(0, {
-            feeRate: Number(feeRate),
+            feeRate: feeRate,
             adminAddr: Address.parse(adminAddress),
             feeAddr: Address.parse(feeAddress),
             budgetCode: Budget.code,
