@@ -10,9 +10,7 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		paths: {
-			base: dev ? '' : '/gittips'
-		},
+		paths: {},
 		adapter: adapter({
 			pages: 'build',
 			assets: 'build',

@@ -1,6 +1,6 @@
 {
-	"name": "web",
-	"version": "0.0.1",
+	"name": "gittips-frontend",
+	"version": "0.1.0",
 	"private": true,
 	"scripts": {
 		"dev": "vite dev",
