@@ -8,6 +8,7 @@
 	import type { OwnerInfo } from '$lib/types';
 	import { bigIntToFloat } from '$lib/utils';
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 
 	const { connected } = $TON;
 
@@ -26,25 +27,58 @@
 		data = await fetchOwnerInfo($storage.ownerId);
 
 		const remainingNumber = data.totalBounties - data.availableBounties;
-		donePercentage = ((remainingNumber * 100) / data.totalBounties).toFixed(0);
+		donePercentage =
+			data.totalBounties > 0 ? ((remainingNumber * 100) / data.totalBounties).toFixed(0) : '00';
 	});
 
-	let tonAmount = '0.0';
+	let errorMessage = '';
+	const showError = (msg: string) => {
+		errorMessage = msg;
+		setTimeout(() => {
+			errorMessage = '';
+		}, 2000);
+	};
+
+	let tonAmount = 0;
 
 	const addBudget = async () => {
 		let wallet = TON.getConnectedWallet();
 		if (!wallet) return;
 
-		wallet.sendTransaction(addBudgetMessage(tonAmount));
+		try {
+			await wallet.sendTransaction(addBudgetMessage(tonAmount.toString()));
+
+			(document.getElementById('add-funds-modal') as HTMLInputElement).checked = false;
+		} catch (e) {
+			console.error(e);
+			showError('Failed to send transaction.');
+		}
 	};
 
 	const withdrawBudget = async () => {
 		let wallet = TON.getConnectedWallet();
 		if (!wallet) return;
 
-		wallet.sendTransaction(withdrawBudgetMessage(tonAmount));
+		try {
+			await wallet.sendTransaction(withdrawBudgetMessage(tonAmount.toString()));
+
+			(document.getElementById('withdrawal-modal') as HTMLInputElement).checked = false;
+		} catch (e) {
+			console.error(e);
+			showError('Failed to send transaction.');
+		}
 	};
 </script>
+
+{#if errorMessage !== ''}
+	<div class="toast toast-top toast-center z-20" out:fade>
+		<div class="alert alert-error w-96">
+			<div>
+				<span>{errorMessage}</span>
+			</div>
+		</div>
+	</div>
+{/if}
 
 <div>
 	<Header breadcrumbs={[{ name: 'budget', href: '' }]} hideGitHubButton={true} />
@@ -135,7 +169,10 @@
 										<img src={TONDiamondBlueLogo} alt="ton logo" width={17} />
 										<p class="text-lg">{bigIntToFloat(bounty.reward, 9, 2)}</p>
 									</div>
+									<!--
+									TODO
 									<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
+									-->
 								</td>
 								<th>
 									<a class="link link-primary" target="_blank" rel="noreferrer" href={bounty.url}
@@ -186,12 +223,12 @@
 					type="number"
 					placeholder="10.000"
 					class="input input-bordered border w-full text-right"
-					min="0.000"
+					min="0.5"
 					step="0.001"
 					bind:value={tonAmount}
 				/>
 			</div>
-			<button class="btn btn-primary" on:click={withdrawBudget}>Confirm</button>
+			<button class="btn btn-primary" on:click={addBudget}>Confirm</button>
 		</div>
 		<div class="modal-action" />
 	</div>
@@ -223,7 +260,7 @@
 					bind:value={tonAmount}
 				/>
 			</div>
-			<button class="btn btn-primary" on:click={addBudget}>Confirm</button>
+			<button class="btn btn-primary" on:click={withdrawBudget}>Confirm</button>
 		</div>
 		<div class="modal-action" />
 	</div>

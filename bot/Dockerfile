@@ -11,6 +11,6 @@ FROM alpine
 COPY --from=builder /go/src/gittips-backend/build/gittips-backend /usr/bin/gittips-backend
 COPY --from=builder /go/src/gittips-backend/app-private-key.pem /usr/bin/app-private-key.pem
 
-EXPOSE 8000 8000
+EXPOSE 8000
 
 ENTRYPOINT ["/usr/bin/gittips-backend"]

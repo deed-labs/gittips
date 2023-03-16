@@ -39,7 +39,7 @@ export const withdrawBudgetMessage = (amount: string): Message => {
 
 	const msg = {
 		address: PUBLIC_ROUTER_ADDRESS,
-		amount: '0',
+		amount: toNano('0.05').toString(),
 		payload: payload
 	};
 

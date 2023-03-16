@@ -30,15 +30,21 @@ func New(client *ton.APIClient, wallet *wallet.Wallet, routerAddr string) *TON {
 	}
 }
 
-func (t *TON) SendPayout(ctx context.Context, to string, amount *big.Int) error {
-	destination, err := address.ParseAddr(to)
+func (t *TON) SendPayout(ctx context.Context, ownerAddr string, toAddr string, amount *big.Int) error {
+	owner, err := address.ParseAddr(ownerAddr)
 	if err != nil {
-		return fmt.Errorf("parse destination: %w", err)
+		return fmt.Errorf("parse owner address: %w", err)
+	}
+
+	destination, err := address.ParseAddr(toAddr)
+	if err != nil {
+		return fmt.Errorf("parse destination address: %w", err)
 	}
 
 	body := cell.BeginCell().
 		MustStoreUInt(sendPayoutOP, 32). // op code
 		MustStoreUInt(0, 64).            // query id
+		MustStoreAddr(owner).
 		MustStoreAddr(destination).
 		MustStoreCoins(amount.Uint64()).
 		EndCell()
@@ -46,6 +52,7 @@ func (t *TON) SendPayout(ctx context.Context, to string, amount *big.Int) error 
 	err = t.wallet.Send(ctx, &wallet.Message{
 		Mode: 1, // pay fees separately (from balance, not from amount)
 		InternalMessage: &tlb.InternalMessage{
+			Bounce:  true,
 			DstAddr: t.routerAddr,
 			Amount:  tlb.MustFromTON("0.03"),
 			Body:    body,

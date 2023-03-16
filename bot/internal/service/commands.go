@@ -70,20 +70,27 @@ type SendPaymentCommand struct {
 	Value string
 }
 
-func (c *SendPaymentCommand) Run(ctx context.Context, toOwnerId int64, value string) error {
-	owner, err := c.svc.repository.Owners().Get(ctx, toOwnerId)
+func (c *SendPaymentCommand) Run(ctx context.Context, fromOwnerId int64, toOwnerId int64, value string) error {
+	fromOwner, err := c.svc.repository.Owners().Get(ctx, fromOwnerId)
+	if err != nil && errors.Is(err, repository.ErrNotFound) {
+		return ErrOwnerNotFound
+	} else if err != nil {
+		return fmt.Errorf("get owner: %w", err)
+	}
+
+	toOwner, err := c.svc.repository.Owners().Get(ctx, toOwnerId)
 	if err != nil && errors.Is(err, repository.ErrNotFound) {
 		return ErrUserNotFound
 	} else if err != nil {
 		return fmt.Errorf("get owner: %w", err)
 	}
 
-	tonValue, err := tlb.FromTON(value)
+	tonValue, err := tlb.FromTON(strings.Replace(value, ",", ".", 1))
 	if err != nil {
 		return ErrInvalidValue
 	}
 
-	if err := c.svc.ton.SendPayout(ctx, owner.WalletAddress, tonValue.NanoTON()); err != nil {
+	if err := c.svc.ton.SendPayout(ctx, fromOwner.WalletAddress, toOwner.WalletAddress, tonValue.NanoTON()); err != nil {
 		return fmt.Errorf("send payout: %w", err)
 	}
 
@@ -105,7 +112,7 @@ type SetRewardCommand struct {
 }
 
 func (c *SetRewardCommand) Run(ctx context.Context, bountyId int64, newReward string) error {
-	tonValue, err := tlb.FromTON(newReward)
+	tonValue, err := tlb.FromTON(strings.Replace(newReward, ",", ".", 1))
 	if err != nil {
 		return ErrInvalidValue
 	}

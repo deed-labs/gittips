@@ -42,7 +42,7 @@ func (s *GitHubService) ProcessOrganizationInstallation(ctx context.Context, pay
 		ctx,
 		payload.Installation.Account.ID,
 		payload.Installation.Account.Login,
-		payload.Installation.Account.URL,
+		payload.Installation.Account.HTMLURL,
 		payload.Installation.Account.AvatarURL,
 		payload.Installation.Account.Type,
 	)
@@ -57,7 +57,7 @@ func (s *GitHubService) ProcessRepositoriesInstallation(ctx context.Context, pay
 		ctx,
 		payload.Installation.Account.ID,
 		payload.Installation.Account.Login,
-		payload.Installation.Account.URL,
+		payload.Installation.Account.HTMLURL,
 		payload.Installation.Account.AvatarURL,
 		payload.Installation.Account.Type,
 	)
@@ -123,7 +123,7 @@ func (s *GitHubService) ProcessIssueEvent(ctx context.Context, payload ghHooks.I
 			}
 
 			err := s.bounties.Create(ctx, payload.Issue.ID, payload.Repository.Owner.ID,
-				payload.Issue.Title, payload.Issue.URL, payload.Issue.Body)
+				payload.Issue.Title, payload.Issue.HTMLURL, payload.Issue.Body)
 			if err != nil {
 				return fmt.Errorf("create bounty: %w", err)
 			}
@@ -192,13 +192,13 @@ func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 
 				return nil
 			}
-			if err := c.Run(ctx, *toOwner.ID, c.Value); err != nil {
+			if err := c.Run(ctx, payload.Repository.Owner.ID, *toOwner.ID, c.Value); err != nil {
 				var reply string
 				switch {
 				case errors.Is(err, ErrInvalidValue):
 					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.InvalidValueInput)
 				case errors.Is(err, ErrUserNotFound):
-					msg := fmt.Sprintf(messages.UserHasNoWalletTmpl, c.To)
+					msg := fmt.Sprintf(messages.UserHasNoWalletTmpl, fmt.Sprintf("@%s", c.To))
 					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, msg)
 				default:
 					return fmt.Errorf("run command: %w", err)
@@ -213,9 +213,11 @@ func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 				if err != nil {
 					return fmt.Errorf("create comment: %w", err)
 				}
+
+				return nil
 			}
 
-			msg := fmt.Sprintf(messages.PaymentSentTmpl, c.To)
+			msg := fmt.Sprintf(messages.PaymentSentTmpl, fmt.Sprintf("@%s", c.To))
 			comment := &github.IssueComment{
 				Body: &msg,
 			}
@@ -228,6 +230,18 @@ func (s *GitHubService) ProcessIssueComment(ctx context.Context, payload ghHooks
 
 			return nil
 		case *SetWalletCommand:
+			// Create owner if it doesn't exist
+			if err := s.processInstallation(
+				ctx,
+				payload.Sender.ID,
+				payload.Sender.Login,
+				payload.Sender.HTMLURL,
+				payload.Sender.AvatarURL,
+				payload.Sender.Type,
+			); err != nil {
+				return fmt.Errorf("process installation: %w", err)
+			}
+
 			if err := c.Run(ctx, payload.Sender.ID, c.WalletAddress); err != nil {
 				return fmt.Errorf("run command: %w", err)
 			}
@@ -303,13 +317,13 @@ func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 				return nil
 			}
 
-			if err := c.Run(ctx, *toOwner.ID, c.Value); err != nil {
+			if err := c.Run(ctx, payload.Repository.Owner.ID, *toOwner.ID, c.Value); err != nil {
 				var reply string
 				switch {
 				case errors.Is(err, ErrInvalidValue):
 					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, messages.InvalidValueInput)
 				case errors.Is(err, ErrUserNotFound):
-					msg := fmt.Sprintf(messages.UserHasNoWalletTmpl, c.To)
+					msg := fmt.Sprintf(messages.UserHasNoWalletTmpl, fmt.Sprintf("@%s", c.To))
 					reply = fmt.Sprintf("@%s\n%s", payload.Sender.Login, msg)
 				default:
 					return fmt.Errorf("run command: %w", err)
@@ -324,9 +338,11 @@ func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 				if err != nil {
 					return fmt.Errorf("create comment: %w", err)
 				}
+
+				return nil
 			}
 
-			msg := fmt.Sprintf(messages.PaymentSentTmpl, c.To)
+			msg := fmt.Sprintf(messages.PaymentSentTmpl, fmt.Sprintf("@%s", c.To))
 			comment := &github.IssueComment{
 				Body: &msg,
 			}
@@ -337,6 +353,18 @@ func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 				return fmt.Errorf("create comment: %w", err)
 			}
 		case *SetWalletCommand:
+			// Create owner if it doesn't exist
+			if err := s.processInstallation(
+				ctx,
+				payload.Sender.ID,
+				payload.Sender.Login,
+				payload.Sender.HTMLURL,
+				payload.Sender.AvatarURL,
+				payload.Sender.Type,
+			); err != nil {
+				return fmt.Errorf("process installation: %w", err)
+			}
+
 			if err := c.Run(ctx, payload.Sender.ID, c.WalletAddress); err != nil {
 				return fmt.Errorf("run command: %w", err)
 			}

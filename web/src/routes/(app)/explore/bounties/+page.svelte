@@ -5,56 +5,6 @@
 
 	/** @type {import('./$types').PageData} */
 	export let data;
-
-	// TODO: replace with real data
-	data.bounties.push(
-		...[
-			{
-				ownerId: 0,
-				title: 'Fix minor bug in interface',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '10000000000',
-				rewardUSD: '23.4'
-			},
-			{
-				ownerId: 0,
-				title: 'Write tests for parser',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '50000000000',
-				rewardUSD: '23.4'
-			},
-			{
-				ownerId: 0,
-				title: 'Update fonts',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '5000000000',
-				rewardUSD: '23.4'
-			},
-			{
-				ownerId: 0,
-				title: 'Implement OAuth authorization',
-				owner: 'deed-labs',
-				ownerType: 'organization',
-				ownerUrl: 'https://github.com/deed-labs',
-				ownerAvatarUrl: 'https://avatars.githubusercontent.com/u/98539501?s=200&v=4',
-				url: 'https://github.com/deed-labs/gittips/issues',
-				reward: '250000000000',
-				rewardUSD: '23.4'
-			}
-		]
-	);
 </script>
 
 <div>
@@ -106,7 +56,11 @@
 									<img src={TONDiamondBlueLogo} alt="ethereum logo" width={17} />
 									<p class="text-lg">{bigIntToFloat(bounty.reward, 9, 2)}</p>
 								</div>
-								<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
+
+								<!--
+									TODO
+									<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
+								-->
 							</td>
 							<th>
 								<a class="link link-primary" target="_blank" rel="noreferrer" href={bounty.url}

@@ -118,5 +118,7 @@ export default class TonConnectWallet {
 		if (!this.connected) return;
 
 		await this.connector.disconnect();
+
+		this.connected = false;
 	}
 }

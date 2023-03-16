@@ -1,3 +1,4 @@
+import type { Message } from '$lib/pkg/txs/ton';
 import { writable, get, derived, type Readable } from 'svelte/store';
 import type { IWallet } from '../pkg/wallet/wallet';
 
@@ -13,14 +14,7 @@ type WalletInfo = {
 export type WalletStore = Readable<WalletInfo> & {
 	connectExternal: (onConnected?: () => void) => Promise<string>;
 	connectInjected: (onConnected?: () => void) => Promise<void>;
-	sendTransaction: (
-		...messages: {
-			address: string;
-			amount: string;
-			stateInit?: string | undefined;
-			payload?: string | undefined;
-		}[]
-	) => Promise<void>;
+	sendTransaction: (...messages: Message[]) => Promise<void>;
 	disconnect: () => Promise<void>;
 	available: boolean;
 	supported: boolean;
@@ -40,7 +34,7 @@ export type Network = {
 };
 
 const makeWalletStore = (wallet: IWallet): WalletStore => {
-	const { subscribe, set } = writable({} as WalletInfo);
+	const { subscribe, set } = writable({ address: wallet.address, connected: wallet.connected });
 
 	const connectExternal = async (onConnected?: () => void): Promise<string> => {
 		let link = await wallet.connectExternal((address: string) => {
@@ -66,6 +60,9 @@ const makeWalletStore = (wallet: IWallet): WalletStore => {
 		});
 	};
 
+	const sendTransaction = async (...messages: Message[]) =>
+		await wallet.sendTransaction(...messages);
+
 	const disconnect = async () => {
 		await wallet.disconnect();
 		set({
@@ -78,8 +75,8 @@ const makeWalletStore = (wallet: IWallet): WalletStore => {
 		subscribe,
 		connectExternal,
 		connectInjected,
+		sendTransaction,
 		disconnect,
-		sendTransaction: wallet.sendTransaction,
 		available: wallet.available,
 		supported: wallet.supported,
 		injected: wallet.injected,
