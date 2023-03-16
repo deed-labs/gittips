@@ -220,6 +220,11 @@ func (h *Handlers) handleGetOwner(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 
 		return
+	} else if err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
 	}
 
 	resp := OwnerInfoResponse{

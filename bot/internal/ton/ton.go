@@ -71,7 +71,9 @@ func (t *TON) GetBudgetBalance(ctx context.Context, walletAddress string) (*big.
 		return nil, fmt.Errorf("get masterchain info: %w", err)
 	}
 
-	res, err := t.client.RunGetMethod(ctx, block, t.routerAddr, "get_budget_address", walletAddr)
+	param := cell.BeginCell().MustStoreAddr(walletAddr).EndCell()
+
+	res, err := t.client.RunGetMethod(ctx, block, t.routerAddr, "get_budget_address", param.BeginParse())
 	if err != nil {
 		return nil, fmt.Errorf("run get method: %w", err)
 	}
@@ -80,12 +82,7 @@ func (t *TON) GetBudgetBalance(ctx context.Context, walletAddress string) (*big.
 	if err != nil {
 		return nil, fmt.Errorf("load slice from result: %w", err)
 	}
-	_, bits, err := sc.RestBits()
-	if err != nil {
-		return nil, fmt.Errorf("load resulst bits: %w", err)
-	}
-
-	budgetAddr := address.NewAddress(bits[0], bits[1], bits[2:34])
+	budgetAddr := sc.MustLoadAddr()
 
 	account, err := t.client.GetAccount(ctx, block, budgetAddr)
 	if err != nil {
