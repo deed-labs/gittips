@@ -23,5 +23,5 @@ export type OwnerInfo = {
 export type InstallationInfo = {
 	installed: boolean;
 	name: string;
-	id: number;
+	ownerId: number;
 };

@@ -12,8 +12,9 @@
 	import { base } from '$app/paths';
 	import type { InstallationInfo } from '$lib/types';
 	import { fetchInstallationInfo } from '$lib/pkg/fetch';
-	import { defaultData, storage } from '$lib/stores/storage';
+	import { defaultData, storage, type LocalStorageData } from '$lib/stores/storage';
 	import { shortAccountString } from '$lib/utils';
+	import type { Unsubscriber } from 'svelte/store';
 
 	const { connected, address, wallets } = $TON;
 
@@ -33,27 +34,35 @@
 		}, 2000);
 	};
 
-	let installationInfo: InstallationInfo = $storage.owner;
+	let installationInfo: InstallationInfo = {
+		installed: $storage.installed,
+		name: $storage.name,
+		ownerId: $storage.ownerId
+	};
+	let unsubscribe: Unsubscriber | null;
 
 	const onInstalled = async () => {
+		if (unsubscribe) unsubscribe();
+
 		(document.getElementById('install-modal') as HTMLInputElement).checked = false;
-		installationInfo = await fetchInstallationInfo($address);
-		storage.set({
-			...$storage,
-			owner: {
-				installed: installationInfo.installed,
-				name: installationInfo.name,
-				id: installationInfo.id
-			}
-		});
 	};
 
 	const startInstallation = async () => {
-		if (!installationInfo.installed) {
-			storage.subscribe((value) => {
-				if (value.bot_installation_done) onInstalled();
-			});
-		}
+		$storage.bot_installation_done = false;
+
+		window.addEventListener('storage', () => {
+			let data: LocalStorageData = JSON.parse(localStorage['data']);
+			if (data.bot_installation_done) {
+				installationInfo = {
+					installed: data.installed,
+					name: data.name,
+					ownerId: data.ownerId
+				};
+				data.bot_installation_done = false;
+				storage.set(data);
+				onInstalled();
+			}
+		});
 	};
 
 	const onConnected = async () => {
@@ -62,11 +71,9 @@
 		storage.set({
 			...$storage,
 			wallet_address: $address,
-			owner: {
-				installed: installationInfo.installed,
-				name: installationInfo.name,
-				id: installationInfo.id
-			}
+			installed: installationInfo.installed,
+			name: installationInfo.name,
+			ownerId: installationInfo.ownerId
 		});
 	};
 
@@ -160,17 +167,19 @@
 						class="dropdown-content menu p-2 mt-2 shadow bg-base-100 rounded-box w-52 border"
 					>
 						{#each Object.entries(wallets) as [name, wallet]}
-							<li>
-								<!-- svelte-ignore a11y-click-events-have-key-events -->
-								<label
-									for=""
-									on:click={() => {
-										connect(wallet);
-									}}
-								>
-									{name}
-								</label>
-							</li>
+							{#if wallet.supported}
+								<li>
+									<!-- svelte-ignore a11y-click-events-have-key-events -->
+									<label
+										for=""
+										on:click={() => {
+											connect(wallet);
+										}}
+									>
+										{name}
+									</label>
+								</li>
+							{/if}
 						{/each}
 					</ul>
 				</div>

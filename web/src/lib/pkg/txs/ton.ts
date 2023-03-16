@@ -5,21 +5,28 @@ import { beginCell, toNano } from 'ton';
 const OP_ADD_BUDGET = 1;
 const OP_WITHDRAW_BUDGET = 2;
 
-const addBudgetMessage = async (amount: string) => {
+export interface Message {
+	address: string;
+	amount: string;
+	stateInit?: string | undefined;
+	payload?: string | undefined;
+}
+
+export const addBudgetMessage = (amount: string): Message => {
 	const tonAmount = toNano(amount);
 	const body = beginCell().storeUint(OP_ADD_BUDGET, 32).storeUint(0, 64).endCell();
 	const payload = Base64.encode(body.toBoc());
 
 	const msg = {
 		address: PUBLIC_ROUTER_ADDRESS,
-		amount: tonAmount,
+		amount: tonAmount.toString(),
 		payload: payload
 	};
 
 	return msg;
 };
 
-const withdrawBudgetMessage = async (amount: string) => {
+export const withdrawBudgetMessage = (amount: string): Message => {
 	const tonAmount = toNano(amount);
 
 	const body = beginCell()
@@ -32,6 +39,7 @@ const withdrawBudgetMessage = async (amount: string) => {
 
 	const msg = {
 		address: PUBLIC_ROUTER_ADDRESS,
+		amount: '0',
 		payload: payload
 	};
 

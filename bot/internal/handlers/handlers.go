@@ -114,6 +114,8 @@ func (h *Handlers) handleGitHubWebhook(w http.ResponseWriter, r *http.Request) {
 		h.logger.Errorf("failed to process hook: %s", err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *Handlers) handleGetBounties(w http.ResponseWriter, r *http.Request) {
@@ -157,14 +159,26 @@ func (h *Handlers) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.services.GitHub.ProcessInstallationSetup(r.Context(), req.InstallationID, req.WalletAddress); err != nil {
+	installation, err := h.services.GitHub.ProcessInstallationSetup(r.Context(), req.InstallationID, req.WalletAddress)
+	if err != nil {
 		h.logger.Error(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	resp := InstallationInfoResponse{
+		Installed: installation.Installed,
+		OwnerName: installation.OwnerName,
+		OwnerID:   installation.OwnerID,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+
+		return
+	}
 }
 
 func (h *Handlers) handleGetInstallation(w http.ResponseWriter, r *http.Request) {
@@ -204,6 +218,11 @@ func (h *Handlers) handleGetOwner(w http.ResponseWriter, r *http.Request) {
 	owner, err := h.services.Owners.Get(r.Context(), int64(ownerId))
 	if err != nil && errors.Is(err, service.ErrOwnerNotFound) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+
+		return
+	} else if err != nil {
+		h.logger.Error(err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 
 		return
 	}

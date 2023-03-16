@@ -4,4 +4,5 @@
 
 contracts/node_modules/
 contracts/build/
+contracts/temp/
 .DS_Store

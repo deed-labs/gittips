@@ -6,13 +6,25 @@
 
 	let address = $storage.wallet_address;
 	let installationId = Number($page.url.searchParams.get('installation_id')) ?? 0;
+	let action = $page.url.searchParams.get('setup_action');
 
 	// TODO: show error of address or installation id is null.
 	// This means that the installation process was corrupted.
 
 	onMount(async () => {
-		await setupInstallation(address, installationId);
-		storage.set({ ...$storage, bot_installation_done: true });
+		if (!action || action !== 'install') return;
+
+		let installationInfo = await setupInstallation(address, installationId);
+
+		console.log(installationInfo);
+
+		storage.set({
+			...$storage,
+			bot_installation_done: true,
+			installed: installationInfo.installed,
+			name: installationInfo.name,
+			ownerId: installationInfo.ownerId
+		});
 	});
 </script>
 

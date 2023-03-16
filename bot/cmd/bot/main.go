@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/deed-labs/gittips/bot/configs"
@@ -16,6 +17,9 @@ import (
 	"github.com/deed-labs/gittips/bot/internal/service"
 	"github.com/deed-labs/gittips/bot/internal/ton"
 	"github.com/joho/godotenv"
+	"github.com/xssnick/tonutils-go/liteclient"
+	tonUtils "github.com/xssnick/tonutils-go/ton"
+	"github.com/xssnick/tonutils-go/ton/wallet"
 	"go.uber.org/zap"
 )
 
@@ -79,23 +83,20 @@ func main() {
 }
 
 func setupTON(ctx context.Context, config configs.TON) (*ton.TON, error) {
-	// TODO: uncomment after contract deployed
-	//pool := liteclient.NewConnectionPool()
-	//err := pool.AddConnection(ctx, config.URL, config.ServerKey)
-	//if err != nil {
-	//	return nil, fmt.Errorf("add ton connection: %w", err)
-	//}
-	//tonClient := tonUtils.NewAPIClient(pool)
-	//
-	//seed := strings.Split(config.WalletSeed, " ")
-	//tonWallet, err := wallet.FromSeed(tonClient, seed, wallet.V3)
-	//if err != nil {
-	//	return nil, fmt.Errorf("wallet from seed: %w", err)
-	//}
-	//
-	//return ton.New(tonClient, tonWallet, config.RouterContract), nil
+	pool := liteclient.NewConnectionPool()
+	err := pool.AddConnectionsFromConfigUrl(ctx, config.ConfigURL)
+	if err != nil {
+		return nil, fmt.Errorf("add ton connection: %w", err)
+	}
+	tonClient := tonUtils.NewAPIClient(pool)
 
-	return &ton.TON{}, nil
+	seed := strings.Split(config.WalletSeed, " ")
+	tonWallet, err := wallet.FromSeed(tonClient, seed, wallet.V3)
+	if err != nil {
+		return nil, fmt.Errorf("wallet from seed: %w", err)
+	}
+
+	return ton.New(tonClient, tonWallet, config.RouterContract), nil
 }
 
 func setupGitHubClient(config configs.GitHub) (*http.Client, error) {

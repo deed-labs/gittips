@@ -2,6 +2,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import TONDiamondBlueLogo from '$lib/images/ton_diamond_blue.png';
 	import { fetchOwnerInfo } from '$lib/pkg/fetch';
+	import { addBudgetMessage, withdrawBudgetMessage } from '$lib/pkg/txs/ton';
 	import { TON } from '$lib/stores/network';
 	import { storage } from '$lib/stores/storage';
 	import type { OwnerInfo } from '$lib/types';
@@ -22,11 +23,27 @@
 	let donePercentage = '00';
 
 	onMount(async () => {
-		data = await fetchOwnerInfo($storage.owner.id);
+		data = await fetchOwnerInfo($storage.ownerId);
 
 		const remainingNumber = data.totalBounties - data.availableBounties;
 		donePercentage = ((remainingNumber * 100) / data.totalBounties).toFixed(0);
 	});
+
+	let tonAmount = '0.0';
+
+	const addBudget = async () => {
+		let wallet = TON.getConnectedWallet();
+		if (!wallet) return;
+
+		wallet.sendTransaction(addBudgetMessage(tonAmount));
+	};
+
+	const withdrawBudget = async () => {
+		let wallet = TON.getConnectedWallet();
+		if (!wallet) return;
+
+		wallet.sendTransaction(withdrawBudgetMessage(tonAmount));
+	};
 </script>
 
 <div>
@@ -171,9 +188,10 @@
 					class="input input-bordered border w-full text-right"
 					min="0.000"
 					step="0.001"
+					bind:value={tonAmount}
 				/>
 			</div>
-			<button class="btn btn-primary">Confirm</button>
+			<button class="btn btn-primary" on:click={withdrawBudget}>Confirm</button>
 		</div>
 		<div class="modal-action" />
 	</div>
@@ -202,9 +220,10 @@
 					class="input input-bordered border w-full text-right"
 					min="0.000"
 					step="0.001"
+					bind:value={tonAmount}
 				/>
 			</div>
-			<button class="btn btn-primary">Confirm</button>
+			<button class="btn btn-primary" on:click={addBudget}>Confirm</button>
 		</div>
 		<div class="modal-action" />
 	</div>
