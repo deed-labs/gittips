@@ -39,7 +39,7 @@ type GitHub interface {
 	ProcessIssueEvent(ctx context.Context, payload ghHooks.IssuesPayload) error
 	ProcessIssueComment(ctx context.Context, payload ghHooks.IssueCommentPayload) error
 	ProcessPRComment(ctx context.Context, payload ghHooks.PullRequestReviewCommentPayload) error
-	ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error
+	ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) (*entity.InstallationInfo, error)
 }
 
 type Services struct {

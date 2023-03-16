@@ -1,3 +1,5 @@
+import type { Message } from '../txs/ton';
+
 /**
  * All wallet classes must implement this interface.
  */
@@ -26,6 +28,8 @@ export interface IWallet {
 	injected: boolean;
 	embedded: boolean;
 
+	supported: boolean;
+
 	/**
 	 * Wallet constructor finalizer.
 	 * It executes all asynchronous instructions necessary for the wallet to work properly.
@@ -44,7 +48,7 @@ export interface IWallet {
 
 	connectInjected(cb: (address: string) => void): Promise<void>;
 
-	sendTransaction(...messages: []): Promise<void>;
+	sendTransaction(...messages: Message[]): Promise<void>;
 
 	disconnect(): Promise<void>;
 }

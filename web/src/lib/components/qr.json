@@ -10,7 +10,7 @@
 		"margin": 4
 	},
 	"dotsOptions": {
-		"type": "extra-rounded",
+		"type": "square",
 		"color": "#FFFFFF"
 	},
 	"backgroundOptions": {

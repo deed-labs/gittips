@@ -73,7 +73,9 @@ export const fetchBounties = async (): Promise<Bounty[]> => {
 export const setupInstallation = async (
 	walletAddress: string,
 	installationId: number
-): Promise<void> => {
+): Promise<InstallationInfo> => {
+	let info: InstallationInfo = {} as InstallationInfo;
+
 	const body = JSON.stringify({
 		installation_id: installationId,
 		wallet_address: walletAddress
@@ -85,12 +87,20 @@ export const setupInstallation = async (
 		});
 
 		if (resp.status != 200) throw new Error('failed to setup installation');
+
+		info.installed = resp.data.installed;
+		info.name = resp.data.owner_name;
+		info.ownerId = resp.data.owner_id;
+
+		return info;
 	} catch (error) {
 		if (axios.isAxiosError(error)) {
 			console.log('error message: ', error.message);
 		} else {
 			console.log('unexpected error: ', error);
 		}
+
+		return info;
 	}
 };
 
@@ -98,13 +108,11 @@ export const fetchInstallationInfo = async (address: string): Promise<Installati
 	let info: InstallationInfo = {} as InstallationInfo;
 
 	try {
-		const resp = await axiosAPI.get<InstallationInfoResponse>('/api/installation/' + address, {
-			headers: { Accept: 'application/json' }
-		});
+		const resp = await axiosAPI.get<InstallationInfoResponse>(`/api/installation/${address}`);
 
 		info.installed = resp.data.installed;
 		info.name = resp.data.owner_name;
-		info.id = resp.data.owner_id;
+		info.ownerId = resp.data.owner_id;
 
 		return info;
 	} catch (error) {

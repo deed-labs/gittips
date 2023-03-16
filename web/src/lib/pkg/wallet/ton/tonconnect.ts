@@ -1,3 +1,4 @@
+import type { Message } from '$lib/pkg/txs/ton';
 import TonConnect, {
 	isWalletInfoInjected,
 	UserRejectsError,
@@ -13,6 +14,7 @@ export default class TonConnectWallet {
 	connected: boolean;
 	address: string;
 	available: boolean = false;
+	supported: boolean = true;
 
 	injected: boolean = false;
 	embedded: boolean = false;
@@ -37,10 +39,18 @@ export default class TonConnectWallet {
 			TonConnect.getWallets().then((list) => {
 				this.info = list[walletIndex];
 
-				this.available =
-					(isWalletInfoInjected(this.info) && this.info.injected) ||
-					((this.info as WalletInfoRemote).bridgeUrl !== undefined &&
-						(this.info as WalletInfoRemote).bridgeUrl !== '');
+				if (!this.info) {
+					this.supported = false;
+					resolve();
+
+					return;
+				}
+
+				if (this.info)
+					this.available =
+						(isWalletInfoInjected(this.info) && this.info.injected) ||
+						((this.info as WalletInfoRemote).bridgeUrl !== undefined &&
+							(this.info as WalletInfoRemote).bridgeUrl !== '');
 
 				this.injected = isWalletInfoInjected(this.info) && this.info.injected;
 				this.embedded = isWalletInfoInjected(this.info) && this.info.embedded;
@@ -87,7 +97,7 @@ export default class TonConnectWallet {
 		this.connector.connect(walletConnectionSource);
 	}
 
-	async sendTransaction(...messages: []): Promise<void> {
+	async sendTransaction(...messages: Message[]): Promise<void> {
 		const request = {
 			validUntil: Math.round(Date.now() / 1000 + 7200),
 			messages

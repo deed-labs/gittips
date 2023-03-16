@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/deed-labs/gittips/bot/internal/entity"
 	"github.com/deed-labs/gittips/bot/internal/messages"
 	"github.com/deed-labs/gittips/bot/internal/parser"
 	ghHooks "github.com/go-playground/webhooks/v6/github"
@@ -33,6 +34,10 @@ func NewGitHubService(httpClient *http.Client, owners Owners, bounties Bounties,
 }
 
 func (s *GitHubService) ProcessOrganizationInstallation(ctx context.Context, payload ghHooks.InstallationPayload) error {
+	if payload.Action != "created" {
+		return nil
+	}
+
 	return s.processInstallation(
 		ctx,
 		payload.Installation.Account.ID,
@@ -44,6 +49,10 @@ func (s *GitHubService) ProcessOrganizationInstallation(ctx context.Context, pay
 }
 
 func (s *GitHubService) ProcessRepositoriesInstallation(ctx context.Context, payload ghHooks.InstallationRepositoriesPayload) error {
+	if payload.Action != "created" {
+		return nil
+	}
+
 	return s.processInstallation(
 		ctx,
 		payload.Installation.Account.ID,
@@ -60,36 +69,18 @@ func (s *GitHubService) processInstallation(ctx context.Context, id int64, login
 		return err
 	}
 
-	var name string
-	switch ownerType {
-	case "User":
-		c, err := s.getUserClient(ctx, login)
-		if err != nil {
-			return fmt.Errorf("get user client: %w", err)
-		}
-		user, _, err := c.Users.Get(ctx, login)
-		if err != nil {
-			return fmt.Errorf("get user info: %w", err)
-		}
-		name = *user.Name
-
-	case "Organization":
-		c, err := s.getOrganizationClient(ctx, login)
-		if err != nil {
-			return fmt.Errorf("get organization client: %w", err)
-		}
-		org, _, err := c.Organizations.Get(ctx, login)
-		if err != nil {
-			return fmt.Errorf("get organization info: %w", err)
-		}
-		name = *org.Name
+	if ownerExists {
+		return nil
 	}
 
-	if !ownerExists {
-		err := s.owners.Create(ctx, id, login, name, url, avatarURL, ownerType)
-		if err != nil {
-			return fmt.Errorf("create owner: %w", err)
-		}
+	name, err := s.GetOwnerName(ctx, login, ownerType)
+	if err != nil {
+		return err
+	}
+
+	err = s.owners.Create(ctx, id, login, name, url, avatarURL, ownerType)
+	if err != nil {
+		return fmt.Errorf("create owner: %w", err)
 	}
 
 	return nil
@@ -370,13 +361,28 @@ func (s *GitHubService) ProcessPRComment(ctx context.Context, payload ghHooks.Pu
 	return nil
 }
 
-func (s *GitHubService) ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) error {
+func (s *GitHubService) ProcessInstallationSetup(ctx context.Context, installationId int64, walletAddress string) (*entity.InstallationInfo, error) {
 	installation, _, err := s.client.Apps.GetInstallation(ctx, installationId)
 	if err != nil {
-		return fmt.Errorf("get installation: %w", err)
+		return nil, fmt.Errorf("get installation: %w", err)
 	}
 
-	return s.owners.LinkWithWallet(ctx, *installation.Account.ID, walletAddress)
+	if err := s.owners.LinkWithWallet(ctx, installation.Account.GetID(), walletAddress); err != nil {
+		return nil, fmt.Errorf("link with wallet: %w", err)
+	}
+
+	name, err := s.GetOwnerName(ctx, installation.Account.GetLogin(), installation.Account.GetType())
+	if err != nil {
+		return nil, err
+	}
+
+	info := &entity.InstallationInfo{
+		Installed: true,
+		OwnerName: name,
+		OwnerID:   installation.Account.GetID(),
+	}
+
+	return info, nil
 }
 
 func (s *GitHubService) getClientAndMembership(ctx context.Context, user string, owner string, ownerType string) (bool, *github.Client, error) {
@@ -446,4 +452,33 @@ func (s *GitHubService) getClient(ctx context.Context, installationId int64) (*g
 	client := github.NewClient(oAuthClient)
 
 	return client, nil
+}
+
+func (s *GitHubService) GetOwnerName(ctx context.Context, login string, ownerType string) (string, error) {
+	var name string
+	switch ownerType {
+	case "User":
+		c, err := s.getUserClient(ctx, login)
+		if err != nil {
+			return "", fmt.Errorf("get user client: %w", err)
+		}
+		user, _, err := c.Users.Get(ctx, login)
+		if err != nil {
+			return "", fmt.Errorf("get user info: %w", err)
+		}
+		name = user.GetName()
+
+	case "Organization":
+		c, err := s.getOrganizationClient(ctx, login)
+		if err != nil {
+			return "", fmt.Errorf("get organization client: %w", err)
+		}
+		org, _, err := c.Organizations.Get(ctx, login)
+		if err != nil {
+			return "", fmt.Errorf("get organization info: %w", err)
+		}
+		name = org.GetName()
+	}
+
+	return name, nil
 }

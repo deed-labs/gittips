@@ -13,8 +13,17 @@ type WalletInfo = {
 export type WalletStore = Readable<WalletInfo> & {
 	connectExternal: (onConnected?: () => void) => Promise<string>;
 	connectInjected: (onConnected?: () => void) => Promise<void>;
+	sendTransaction: (
+		...messages: {
+			address: string;
+			amount: string;
+			stateInit?: string | undefined;
+			payload?: string | undefined;
+		}[]
+	) => Promise<void>;
 	disconnect: () => Promise<void>;
 	available: boolean;
+	supported: boolean;
 
 	injected: boolean;
 	embedded: boolean;
@@ -70,7 +79,9 @@ const makeWalletStore = (wallet: IWallet): WalletStore => {
 		connectExternal,
 		connectInjected,
 		disconnect,
+		sendTransaction: wallet.sendTransaction,
 		available: wallet.available,
+		supported: wallet.supported,
 		injected: wallet.injected,
 		embedded: wallet.embedded
 	};
@@ -101,6 +112,12 @@ const makeNetworkStore = () => {
 			});
 
 			set({ connected, address, wallets: walletStores });
+		},
+		getConnectedWallet() {
+			let network = get(this);
+			let wallets = Object.values(network.wallets).filter((w) => get(w).connected);
+
+			return wallets.length === 0 ? null : wallets[0];
 		},
 		async disconnect() {
 			let network = get(this);
