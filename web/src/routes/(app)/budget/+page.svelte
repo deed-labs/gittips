@@ -9,6 +9,7 @@
 	import { bigIntToFloat } from '$lib/utils';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
+	import CoinGecko from 'coingecko-api';
 
 	const { connected } = $TON;
 
@@ -25,6 +26,15 @@
 
 	onMount(async () => {
 		data = await fetchOwnerInfo($storage.ownerId);
+
+		const cgClient = new CoinGecko();
+		const tonPriceData = (
+			await cgClient.simple.price({ ids: 'the-open-network', vs_currencies: 'usd' })
+		).data;
+
+		data.bounties.forEach((b) => {
+			b.rewardUSD = Number(bigIntToFloat(b.reward, 9, 2)) * tonPriceData['the-open-network']['usd'];
+		});
 
 		const remainingNumber = data.totalBounties - data.availableBounties;
 		donePercentage =
@@ -169,10 +179,7 @@
 										<img src={TONDiamondBlueLogo} alt="ton logo" width={17} />
 										<p class="text-lg">{bigIntToFloat(bounty.reward, 9, 2)}</p>
 									</div>
-									<!--
-									TODO
 									<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
-									-->
 								</td>
 								<th>
 									<a class="link link-primary" target="_blank" rel="noreferrer" href={bounty.url}

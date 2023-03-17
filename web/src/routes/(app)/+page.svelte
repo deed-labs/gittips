@@ -31,7 +31,7 @@
 <div class="hero min-h-screen">
 	<div class="hero-content text-center">
 		{#if ready}
-			<div class="max-w-4xl" in:fly={{ y: 200, duration: 1500 }}>
+			<div class="max-w-4xl mb-32" in:fly={{ y: 200, duration: 1500 }}>
 				<h1 class="text-5xl md:text-7xl font-bold text-white">
 					Reward the community, fuel innovation
 				</h1>
@@ -198,9 +198,9 @@
 	}}
 >
 	{#if isInView[5]}
-		<div class="card bg-gray-700 w-full md:w-2/3 p-12" in:fade={{ duration: 1500 }}>
+		<div class="card bg-gray-700 w-full md:w-2/3 p-12 items-center" in:fade={{ duration: 1500 }}>
 			<h1 class="text-white text-4xl text-center">Roadmap 2023</h1>
-			<ul class="steps steps-vertical md:steps-horizontal mt-12 text-white">
+			<ul class="steps steps-vertical md:steps-horizontal my-12 text-white">
 				<li data-content="Q1" class="step step-primary">
 					<p class="w-full text-center">Mainnet Launch</p>
 				</li>
@@ -211,6 +211,12 @@
 					<p class="w-full text-center">Deeper GitHub integration</p>
 				</li>
 			</ul>
+			<a
+				class="btn btn-secondary btn-sm btn-wide"
+				target="_blank"
+				rel="noreferrer"
+				href="https://deed-labs.gitbook.io/gittips/overview/roadmap">More</a
+			>
 		</div>
 	{/if}
 </div>

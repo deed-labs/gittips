@@ -56,11 +56,7 @@
 									<img src={TONDiamondBlueLogo} alt="ethereum logo" width={17} />
 									<p class="text-lg">{bigIntToFloat(bounty.reward, 9, 2)}</p>
 								</div>
-
-								<!--
-									TODO
-									<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
-								-->
+								<div class="text-sm opacity-50">~ ${bounty.rewardUSD}</div>
 							</td>
 							<th>
 								<a class="link link-primary" target="_blank" rel="noreferrer" href={bounty.url}

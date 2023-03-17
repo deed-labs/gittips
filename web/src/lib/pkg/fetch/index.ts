@@ -54,7 +54,7 @@ export const fetchBounties = async (): Promise<Bounty[]> => {
 				title: b.title,
 				url: b.url,
 				reward: b.reward,
-				rewardUSD: ''
+				rewardUSD: 0
 			});
 		});
 
@@ -151,7 +151,7 @@ export const fetchOwnerInfo = async (id: number): Promise<OwnerInfo> => {
 				title: b.title,
 				url: b.url,
 				reward: b.reward,
-				rewardUSD: ''
+				rewardUSD: 0
 			});
 		});
 

@@ -7,7 +7,7 @@ export type Bounty = {
 	title: string;
 	url: string;
 	reward: string;
-	rewardUSD: string;
+	rewardUSD: number;
 };
 
 export type OwnerInfo = {

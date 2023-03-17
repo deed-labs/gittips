@@ -112,7 +112,7 @@
 	export { classProps as class };
 </script>
 
-<div class={'navbar max-w-screen-2xl m-auto bg-base-100 py-5 ' + classProps}>
+<div class={'navbar max-w-screen-2xl m-auto bg-base-100 p-5 ' + classProps}>
 	<div class="flex-1">
 		<a class="btn btn-ghost normal-case text-xl text-white" href={base + '/'}
 			><img src={GittipsLogo} width={35} class="mr-2" alt="logo" />Gittips</a
@@ -131,19 +131,19 @@
 			</ul>
 		</div>
 	</div>
-	<div class="flex-none">
+	<div class="flex flex-col-reverse md:flex-row items-end gap-5">
 		{#if $connected && !hideGitHubButton}
 			<div>
 				{#if !installationInfo.installed}
 					<label
 						for="install-modal"
-						class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
+						class="btn btn-github btn-outline text-white rounded-full capitalize"
 					>
 						<img class="mr-2" src={GitHubLogo} alt="github logo" width={25} />Add to GitHub
 					</label>
 				{:else}
 					<a
-						class="btn btn-github btn-outline mr-4 text-white rounded-full capitalize"
+						class="btn btn-github btn-outline text-white rounded-full capitalize"
 						href={base + '/budget'}
 					>
 						<img
@@ -159,7 +159,7 @@
 		<div>
 			{#if !$connected}
 				<div class="dropdown dropdown-bottom dropdown-end">
-					<label tabindex="0" class="btn btn-primary mr-4 text-white rounded-full capitalize"
+					<label tabindex="0" class="btn btn-primary text-white rounded-full capitalize"
 						><img class="mr-2" src={TONDiamondWhiteLogo} alt="ton logo" width={18} />Connect TON</label
 					>
 					<ul
@@ -184,7 +184,7 @@
 					</ul>
 				</div>
 			{:else}
-				<label for="disconnect-modal" class="btn btn-outline btn-primary mr-4 rounded-full"
+				<label for="disconnect-modal" class="btn btn-outline btn-primary rounded-full"
 					><img
 						class="mr-2"
 						src={TONDiamondBlueLogo}
