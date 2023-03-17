@@ -9,7 +9,12 @@
 				rel="noreferrer"
 				href="https://github.com/deed-labs">GitHub</a
 			>
-			<a class="link link-hover" href="#">Telegram</a>
+			<a
+				class="link link-hover"
+				target="_blank"
+				rel="noreferrer"
+				href="https://t.me/+3B7rHMU0zro3NDli">Telegram</a
+			>
 		</div>
 		<div>
 			<p>&#169; {new Date().getFullYear()} DEED Labs</p>
