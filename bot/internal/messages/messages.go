@@ -17,7 +17,7 @@ var (
 	UserHasNoWalletTmpl = `
 Oops! Looks like this user forgot to set his wallet address. 
 
-%s, please set your wallet address to receive the payment - [Documentation](https://deed-labs.gitbook.io/gittips/product-guides/commands#set-wallet-address)
+%s, please set your wallet address to receive the payment - [Documentation](https://docs.gittips.org/product-guides/commands#set-wallet-address)
 `
 
 	PaymentSentTmpl = `

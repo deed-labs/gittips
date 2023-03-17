@@ -3,11 +3,8 @@
 
 	<footer class="footer footer-center p-5 gap-5 text-white">
 		<div class="grid grid-flow-col gap-4">
-			<a
-				class="link link-hover"
-				target="_blank"
-				rel="noreferrer"
-				href="https://deed-labs.gitbook.io/gittips/">Docs</a
+			<a class="link link-hover" target="_blank" rel="noreferrer" href="https://docs.gittips.org/"
+				>Docs</a
 			>
 			<a
 				class="link link-hover"

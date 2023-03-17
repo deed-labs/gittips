@@ -44,7 +44,7 @@
 						class="btn btn-wide btn-primary btn-outline text-white font-bold rounded-full capitalize"
 						target="_blank"
 						rel="noreferrer"
-						href="https://deed-labs.gitbook.io/gittips/">Docs</a
+						href="https://docs.gittips.org/">Docs</a
 					>
 					<a
 						class="btn btn-wide btn-primary text-white font-bold rounded-full capitalize"
@@ -184,7 +184,7 @@
 				class="btn btn-wide btn-primary text-white font-bold rounded-full mt-12"
 				target="_blank"
 				rel="noreferrer"
-				href="https://deed-labs.gitbook.io/gittips/">Try it out</a
+				href="https://docs.gittips.org/">Try it out</a
 			>
 		</div>
 	{/if}
@@ -215,7 +215,7 @@
 				class="btn btn-secondary btn-sm btn-wide"
 				target="_blank"
 				rel="noreferrer"
-				href="https://deed-labs.gitbook.io/gittips/overview/roadmap">More</a
+				href="https://docs.gittips.org/overview/roadmap">More</a
 			>
 		</div>
 	{/if}
