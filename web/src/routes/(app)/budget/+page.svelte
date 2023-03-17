@@ -22,23 +22,28 @@
 		availableBounties: 0,
 		bounties: []
 	};
-	let donePercentage = '00';
+	let donePercentage = '0';
 
 	onMount(async () => {
-		data = await fetchOwnerInfo($storage.ownerId);
+		let info = await fetchOwnerInfo($storage.ownerId);
 
 		const cgClient = new CoinGecko();
 		const tonPriceData = (
 			await cgClient.simple.price({ ids: 'the-open-network', vs_currencies: 'usd' })
 		).data;
 
-		data.bounties.forEach((b) => {
-			b.rewardUSD = Number(bigIntToFloat(b.reward, 9, 2)) * tonPriceData['the-open-network']['usd'];
+		info.bounties.forEach((b) => {
+			b.rewardUSD = +(
+				Number(bigIntToFloat(b.reward, 9, 2)) * tonPriceData['the-open-network']['usd']
+			).toFixed(2);
+			console.log(b.rewardUSD);
 		});
 
-		const remainingNumber = data.totalBounties - data.availableBounties;
+		const remainingNumber = info.totalBounties - info.availableBounties;
 		donePercentage =
-			data.totalBounties > 0 ? ((remainingNumber * 100) / data.totalBounties).toFixed(0) : '00';
+			data.totalBounties > 0 ? ((remainingNumber * 100) / info.totalBounties).toFixed(0) : '00';
+
+		data = info;
 	});
 
 	let errorMessage = '';

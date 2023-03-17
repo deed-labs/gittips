@@ -12,7 +12,9 @@ export async function load({}) {
 	).data;
 
 	bounties.forEach((b) => {
-		b.rewardUSD = Number(bigIntToFloat(b.reward, 9, 2)) * tonPriceData['the-open-network']['usd'];
+		b.rewardUSD = +(
+			Number(bigIntToFloat(b.reward, 9, 2)) * tonPriceData['the-open-network']['usd']
+		).toFixed(2);
 	});
 
 	return { bounties };
