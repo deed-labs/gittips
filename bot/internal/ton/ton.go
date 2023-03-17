@@ -2,6 +2,7 @@ package ton
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -81,6 +82,12 @@ func (t *TON) GetBudgetBalance(ctx context.Context, walletAddress string) (*big.
 	param := cell.BeginCell().MustStoreAddr(walletAddr).EndCell()
 
 	res, err := t.client.RunGetMethod(ctx, block, t.routerAddr, "get_budget_address", param.BeginParse())
+	var execError *ton.ContractExecError
+	if err != nil && errors.As(err, &execError) && execError.Code == ton.ErrCodeContractNotInitialized {
+		// Returns a zero balance if the error is only caused by
+		// the fact that the budget contract has not yet been initialized.
+		return zeroBigInt, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("run get method: %w", err)
 	}
