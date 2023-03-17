@@ -103,9 +103,5 @@ func (t *TON) GetBudgetBalance(ctx context.Context, walletAddress string) (*big.
 		return nil, fmt.Errorf("get account: %w", err)
 	}
 
-	if !account.IsActive {
-		return zeroBigInt, nil
-	}
-
 	return account.State.Balance.NanoTON(), nil
 }
