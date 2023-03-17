@@ -204,10 +204,10 @@
 				<li data-content="Q1" class="step step-primary">
 					<p class="w-full text-center">Mainnet Launch</p>
 				</li>
-				<li data-content="Q1" class="step">
+				<li data-content="Q2" class="step">
 					<p class="w-full text-center">NFT Rewards Support</p>
 				</li>
-				<li data-content="Q2" class="step">
+				<li data-content="Q3" class="step">
 					<p class="w-full text-center">Deeper GitHub integration</p>
 				</li>
 			</ul>
